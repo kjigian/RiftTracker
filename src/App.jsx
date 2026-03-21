@@ -1,0 +1,1173 @@
+import { useState, useEffect, useCallback } from "react";
+import { getCollection, updateCard, getShoppingChecked, toggleShopItem } from "./lib/supabase";
+
+// ============================================================
+// RIFTBOUND CARD SORTER — COMPLETE PROJECT HUB
+// ============================================================
+
+const DOMAINS = [
+  { name: "Fury", color: "#dc2626", icon: "🔥" },
+  { name: "Calm", color: "#16a34a", icon: "🌿" },
+  { name: "Mind", color: "#2563eb", icon: "🧠" },
+  { name: "Body", color: "#ea580c", icon: "💪" },
+  { name: "Chaos", color: "#9333ea", icon: "🌀" },
+  { name: "Order", color: "#eab308", icon: "⚖️" },
+];
+
+// --- SHOPPING LIST DATA ---
+const SHOP = [
+  { cat: "🧠 Brain & Vision", items: [
+    { name: "Raspberry Pi 5 8GB (board only)", link: "https://www.amazon.com/Raspberry-Pi-8GB-SC1112-Quad-core/dp/B0CK2FCG1K", price: "$80", qty: 1, compat: "GPIO 3.3V logic → TMC2209 VIO. CSI connector for Camera Module 3. Runs picamera2 + OpenCV.", note: "8GB is the sweet spot. 16GB is overkill." },
+    { name: "Pi 27W USB-C Power Supply (5V/5A)", link: "https://www.amazon.com/s?k=raspberry+pi+5+27w+power+supply+official", price: "$12", qty: 1, compat: "5V/5A PD required for Pi 5 stability. Separate from 12V motor supply.", note: "Official supply is most reliable." },
+    { name: "Arducam Pi Camera Module 3 (12MP, 75° AF)", link: "https://www.amazon.com/Arducam-Raspberry-Camera-Autofocus-15-22pin/dp/B0C9PYCV9S", price: "$26", qty: 1, compat: "IMX708, PDAF+CDAF autofocus, CSI-2. Includes 15-to-22 pin adapter for Pi 5.", note: "75° standard lens — don't get Wide (120°), too much distortion for card ID." },
+    { name: "Samsung 64GB MicroSD (A2, V30)", link: "https://www.amazon.com/s?k=samsung+evo+select+64gb+microsd", price: "$9", qty: 1, compat: "A2 rated for Pi 5 SDR104 mode.", note: "Room for OS + card image database." },
+    { name: "Small LED Ring Light (USB)", link: "https://www.amazon.com/s?k=small+LED+ring+light+usb+adjustable", price: "$10", qty: 1, compat: "USB powered from Pi. Inner Ø >12mm for camera lens.", note: "Consistent lighting is critical for color detection." },
+  ]},
+  { cat: "⚙️ Motors & Drivers", items: [
+    { name: "STEPPERONLINE NEMA 17 (59Ncm, 2A, 5mm D-shaft) ×2", link: "https://www.amazon.com/Stepper-Motor-59Ncm-4-wire-Printer/dp/B00Y2HJE22", price: "$22", qty: 1, compat: "2A matches TMC2209 (2.8A peak). 5mm D-shaft fits turntable hub directly. 4-wire bipolar with 1m cable + connector.", note: "2-pack. One for feed roller, one for turntable." },
+    { name: "BIGTREETECH TMC2209 V1.3 Drivers ×2", link: "https://www.amazon.com/BIGTREETECH-TMC2209-Stepper-Driver-Printer/dp/B08C2DJQ6B", price: "$14", qty: 1, compat: "2.8A peak, 4.75-28V motor voltage, 3.3V logic OK. StealthChop2 silent. STEP/DIR default mode — wire directly to Pi GPIO.", note: "2-pack with heatsinks included." },
+    { name: "MG996R Servo (metal gear, 180°) ×4 pack", link: "https://www.amazon.com/4-Pack-MG996R-Torque-Digital-Helicopter/dp/B07MFK266B", price: "$12", qty: 1, compat: "4.8-7.2V, PWM 500-2500μs. Pi GPIO 18 is HW PWM. 12kg·cm torque. 40.7×19.7×42.9mm matches gate housing.", note: "Only need 1 but 4-pack is cheapest. 25T horn included." },
+  ]},
+  { cat: "🔩 Frame & Structure", items: [
+    { name: "2020 V-Slot Extrusion 500mm (4pk) + T-Nuts", link: "https://www.amazon.com/Aluminum-Extrusion-European-Standard-20mmx20mm/dp/B09DTL7G6X", price: "$20", qty: 1, compat: "V-slot, 20-series compatible. Includes 20 T-nuts + M5 screws.", note: "Cut to length with hacksaw." },
+    { name: "2020 Corner Brackets Kit (20-set)", link: "https://www.amazon.com/BLCCLOY-2020-Aluminum-Extrusion-Connectors/dp/B0CG36V9SD", price: "$12", qty: 1, compat: "90° L-brackets, M6 bolts + T-nuts.", note: "20 brackets is plenty." },
+  ]},
+  { cat: "🔄 Card Feed", items: [
+    { name: "Silicone Roller Wheel (25-30mm, 5mm bore)", link: "https://www.amazon.com/s?k=silicone+rubber+wheel+5mm+bore+25mm", price: "$8", qty: 1, compat: "5mm bore fits NEMA 17 shaft directly.", note: "Or 3D print a hub + wrap with rubber tubing." },
+    { name: "5mm Rigid Shaft Coupler (2pk)", link: "https://www.amazon.com/s?k=5mm+rigid+shaft+coupler+aluminum", price: "$6", qty: 1, compat: "Backup if roller doesn't fit motor shaft directly.", note: "Aluminum with set screws." },
+    { name: "Compression Spring Assortment", link: "https://www.amazon.com/s?k=small+compression+spring+assortment+kit", price: "$7", qty: 1, compat: "~10mm OD × 25-30mm for hopper pusher.", note: "Start with light tension." },
+  ]},
+  { cat: "📡 Electronics", items: [
+    { name: "Adafruit IR Break Beam 5mm (ADA2168)", link: "https://www.amazon.com/Adafruit-IR-Break-Beam-Sensor/dp/B00XW2NVJU", price: "$4", qty: 2, compat: "3.3V/5V, open-collector output. 50cm range vs 68mm channel. Breadboard-ready header ends.", note: "Buy 2. Triggers camera capture." },
+    { name: "12V 5A DC Power Supply", link: "https://www.amazon.com/s?k=12V+5A+DC+power+supply+barrel+jack", price: "$12", qty: 1, compat: "Feeds TMC2209 VMOT (4.75-28V). 5A for 2× NEMA 17 at 2A each.", note: "Get barrel jack screw terminal adapter too." },
+    { name: "LM2596 Buck Converter (3pk)", link: "https://www.amazon.com/s?k=LM2596+buck+converter+adjustable", price: "$8", qty: 1, compat: "Steps 12V → 5.5V for MG996R servo. 3A output handles servo stall current.", note: "Set to 5.5V with multimeter before connecting servo." },
+    { name: "Dupont Jumper Wires (120pc)", link: "https://www.amazon.com/Elegoo-EL-CP-004-Multicolored-Breadboard-arduino/dp/B01EV70C78", price: "$7", qty: 1, compat: "2.54mm pitch matches all components.", note: "M-M, M-F, F-F variety." },
+    { name: "Breadboard 830 (2pk)", link: "https://www.amazon.com/s?k=breadboard+830+tie+points+2+pack", price: "$7", qty: 1, compat: "Standard pitch for prototyping.", note: "Separate power from signals." },
+    { name: "M3 Screw Kit (240pc)", link: "https://www.amazon.com/s?k=M3+screw+assortment+kit+hex+socket+nuts", price: "$9", qty: 1, compat: "NEMA 17 uses M3 at 31mm spacing.", note: "Various lengths + nuts + washers." },
+  ]},
+  { cat: "🖨️ Consumables", items: [
+    { name: "PLA Filament 1kg (1.75mm)", link: "https://www.amazon.com/s?k=PLA+filament+1kg+1.75mm", price: "$20", qty: 1, compat: "All parts designed for PLA.", note: "~700g total, one spool covers it." },
+    { name: "PTFE Tape (plumber's tape)", link: "https://www.amazon.com/s?k=PTFE+plumber+tape", price: "$3", qty: 1, compat: "Lines gravity slide for smooth card travel.", note: "Replace when worn." },
+    { name: "Cork Sheet (1mm, self-adhesive)", link: "https://www.amazon.com/s?k=cork+sheet+1mm+self+adhesive", price: "$5", qty: 1, compat: "50×12mm piece for separation pad.", note: "Prevents double-feeding." },
+  ]},
+];
+
+// --- 3D PARTS DATA ---
+const PARTS_3D = [
+  { num: "01", name: "Card Hopper", ext: "74×99×140mm", inner: "68×93×135mm", orient: "Upright", infill: "20%", time: "~4 hrs", weight: "~80g", notes: "Tilted 30° from vertical. Spring pocket Ø12mm in floor. Feed slot 58×8mm at bottom. Viewing window 30×110mm." },
+  { num: "01b", name: "Pusher Plate", ext: "67×92×2mm", inner: "Solid", orient: "Flat", infill: "100%", time: "~20 min", weight: "~5g", notes: "Rides on spring inside hopper. Centering dimple on bottom." },
+  { num: "02", name: "Feed Roller Mount", ext: "90×60×10mm", inner: "NEMA 17: 31mm holes, 24mm boss", orient: "Flat on back", infill: "30%", time: "~1.5 hrs", weight: "~30g", notes: "Roller window 50×20mm. M5 tabs extend 10mm each side." },
+  { num: "02b", name: "Separation Pad", ext: "60×22×6mm", inner: "Cork recess: 50×12×3mm", orient: "Flat", infill: "30%", time: "~15 min", weight: "~5g", notes: "Glue cork/rubber into recess. Mounts opposite roller." },
+  { num: "03", name: "Gravity Slide", ext: "74×220×15mm", inner: "68mm channel, 3mm base", orient: "Flat (channel up)", infill: "20%", time: "~3 hrs", weight: "~60g", notes: "Camera window 50×70mm at 45% down. IR holes Ø6mm through rails. Line with PTFE tape. Print in 2 halves if bed <220mm." },
+  { num: "04", name: "Camera Mount", ext: "50×40×67mm", inner: "Pi Cam: 21×12.5mm, M2 holes", orient: "Upright", infill: "20%", time: "~1.5 hrs", weight: "~25g", notes: "Camera 60mm above card. LED ring holder Ø48/30mm. Lens hole Ø12mm." },
+  { num: "05", name: "Release Gate", ext: "96×46×53mm", inner: "Channel: 68×40mm", orient: "Flat on back", infill: "30%", time: "~2.5 hrs", weight: "~45g", notes: "MG996R pocket. Card exit 64×36mm bottom. Servo 0°=closed, 90°=open." },
+  { num: "05b", name: "Gate Flap", ext: "66×25×2mm", inner: "Horn hole: Ø5.8mm", orient: "Flat", infill: "100%", time: "~15 min", weight: "~3g", notes: "Press-fits onto MG996R 25T cross horn." },
+  { num: "06v3", name: "Turntable (6-Bin)", ext: "Ø200mm×17mm", inner: "6 slots at 60°, D-shaft Ø5mm", orient: "Flat", infill: "20%, 4 walls", time: "~4 hrs", weight: "~120g", notes: "FITS STANDARD BED. Direct drive — no belt. Hub Ø24×12mm. M3 set screw. Index dots on edge." },
+  { num: "07", name: "Card Bin ×6", ext: "74×99×57mm", inner: "70×95×40mm", orient: "Upright", infill: "20%", time: "~1.5 hrs ea", weight: "~35g ea", notes: "Funnel flares 5mm/side. Label slot 50×15mm. Finger scoop. Snap tabs. Holds ~100 sleeved cards." },
+  { num: "08", name: "Motor Mount", ext: "80×60×5mm", inner: "NEMA 17 centered", orient: "Flat", infill: "30%", time: "~1 hr", weight: "~20g", notes: "Shaft points UP into turntable. No belt tensioner needed." },
+];
+
+// --- ASSEMBLY STEPS ---
+const ASSEMBLY = [
+  { title: "Build Frame", desc: "Cut 2020 extrusion: 4× 300mm verticals, 2× 350mm base, 2× 200mm cross-braces. Assemble with corner brackets into angled frame supporting the slide at 27°." },
+  { title: "Mount Turntable", desc: "Bolt motor mount to frame base with M5 T-nuts. Attach NEMA 17 with shaft pointing UP. Slide turntable disc onto D-shaft, lock with M3 set screw. Verify free spin." },
+  { title: "Install 6 Bins", desc: "Snap bins into turntable slots. Label: Fury (Red), Calm (Green), Mind (Blue), Body (Orange), Chaos (Purple), Order (Yellow)." },
+  { title: "Mount Gravity Slide", desc: "Attach at 27° angle. Bottom exit centered over turntable drop point. Line inside with PTFE tape." },
+  { title: "Attach Release Gate", desc: "Bolt to bottom of slide. Install MG996R servo in side pocket. Attach gate flap to horn. Test: 0°=closed, 90°=open." },
+  { title: "Mount Camera", desc: "Bracket below slide's camera window. Pi Camera faces UP through window. Install LED ring. ~60mm from card surface." },
+  { title: "Install Hopper + Feed Roller", desc: "NEMA 17 mount at top of slide. Rubber roller through window contacts bottom card. Hopper above at 30° tilt. Sep pad opposite roller. Insert spring + pusher." },
+  { title: "Install Sensors", desc: "IR break-beam emitter/receiver in 6mm holes through slide rails at camera position." },
+  { title: "Wire Everything", desc: "See Wiring tab for full GPIO pinout and power chain." },
+  { title: "Software Setup", desc: "Flash Pi OS, install dependencies, copy sorter_main.py, run test mode." },
+];
+
+// --- WIRING DATA ---
+const WIRING = [
+  { conn: "Feed STEP", pin: "GPIO 17 (pin 11)", to: "TMC2209 #1 STEP" },
+  { conn: "Feed DIR", pin: "GPIO 27 (pin 13)", to: "TMC2209 #1 DIR" },
+  { conn: "Feed EN", pin: "GPIO 22 (pin 15)", to: "TMC2209 #1 EN" },
+  { conn: "Table STEP", pin: "GPIO 23 (pin 16)", to: "TMC2209 #2 STEP" },
+  { conn: "Table DIR", pin: "GPIO 24 (pin 18)", to: "TMC2209 #2 DIR" },
+  { conn: "Table EN", pin: "GPIO 25 (pin 22)", to: "TMC2209 #2 EN" },
+  { conn: "Gate Servo", pin: "GPIO 18 (pin 12)", to: "MG996R signal (orange)" },
+  { conn: "IR Sensor", pin: "GPIO 4 (pin 7)", to: "Break beam OUT (white)" },
+  { conn: "Camera", pin: "CSI (22-pin)", to: "Camera Module 3 ribbon" },
+];
+
+const POWER_CHAIN = [
+  "12V 5A PSU → TMC2209 VMOT pins (both drivers)",
+  "12V 5A PSU → LM2596 Buck IN → 5.5V OUT → MG996R (red wire)",
+  "Pi 5 27W USB-C → Pi 5 (separate supply, never from 12V)",
+  "Pi 3.3V (pin 1) → TMC2209 VIO pins (both drivers)",
+  "Pi 5V (pin 2) → IR sensor VCC (red wire)",
+  "ALL GND tied together: Pi GND + 12V GND + Buck GND + Servo GND + IR GND + TMC2209 GND",
+];
+
+// --- COLLECTION MANAGER ---
+const RARITIES = ["Common", "Uncommon", "Rare", "Epic", "Legendary"];
+function genCards() {
+  const names = ["Blazing Strike","Ember Fist","Inferno Rush","Flame Guard","Fury's Edge","Pyroclasm","Ash Walker","Burning Resolve","Firestorm","Rage Pulse","Tranquil Pool","Vine Shield","Nature's Gift","Calm Tide","Root Wall","Healing Rain","Bark Sentinel","Leaf Dancer","Serenity","Wild Growth","Arcane Bolt","Mind Trap","Psychic Wave","Brain Freeze","Thought Thief","Mental Block","Dream Weaver","Logic Chain","Mana Surge","Insight","Iron Will","Might Boost","Titan Slam","Body Guard","Stone Skin","Rune Forge","Earth Shaker","Bulk Up","Endure","Colossus","Void Rip","Shadow Step","Chaos Bolt","Dark Pact","Entropy","Madness","Rift Tear","Unstable Flux","Pandemonium","Hex Curse","Divine Shield","Light Blade","Order's Call","Holy Smite","Balance","Judgment","Sacred Oath","Law Bringer","Radiance","Purity","Jinx","Viktor","Lee Sin","Annie","Master Yi","Lux","Garen","Miss Fortune","Ahri","Sett"];
+  return names.map((n,i) => ({ id:`c${i}`, name:n, domain:DOMAINS[Math.floor(i/10)%6].name, cost:i>=60?Math.floor(Math.random()*5)+4:Math.floor(Math.random()*9), rarity:i>=60?"Legendary":RARITIES[Math.floor(Math.random()*4)], type:i>=60?"Champion":["Unit","Spell","Champion","Item"][Math.floor(Math.random()*4)], set:"Origins", value:i>=60?+(Math.random()*15+5).toFixed(2):+(Math.random()*3+0.1).toFixed(2) }));
+}
+const ALL_CARDS = genCards();
+
+// --- STORAGE (powered by Supabase + localStorage fallback) ---
+// See src/lib/supabase.js for implementation
+
+// ============================================================
+// STYLES
+// ============================================================
+const S = {
+  bg: "#06060c", card: "#0e0e1a", border: "#1a1a2e", accent: "#6c63ff",
+  green: "#10b981", cyan: "#06b6d4", orange: "#f59e0b", pink: "#ec4899",
+  text: "#d0cdc8", dim: "#5a5a7e", dark: "#3a3a5e",
+};
+
+const pill = (active, color = S.accent) => ({
+  background: active ? color + "20" : "transparent",
+  border: `1px solid ${active ? color : S.border}`,
+  color: active ? "#fff" : S.dim,
+  padding: "6px 14px", borderRadius: 6, fontSize: 11,
+  cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s", whiteSpace: "nowrap",
+});
+
+// ============================================================
+// APP
+// ============================================================
+export default function App() {
+  const [tab, setTab] = useState("overview");
+  const [coll, setColl] = useState({});
+  const [shopChecked, setShopChecked] = useState(new Set());
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([getCollection(), getShoppingChecked()]).then(([c, s]) => {
+      if (c) setColl(c);
+      if (s) setShopChecked(s);
+      setLoading(false);
+    });
+  }, []);
+
+  const updateColl = useCallback(async (id, qty) => {
+    const next = { ...coll }; qty <= 0 ? delete next[id] : next[id] = qty;
+    setColl(next); await updateCard(id, qty);
+  }, [coll]);
+
+  const toggleShop = useCallback(async (key) => {
+    setShopChecked(prev => {
+      const n = new Set(prev); const isChecked = !n.has(key);
+      n.has(key) ? n.delete(key) : n.add(key);
+      toggleShopItem(key, isChecked); return n;
+    });
+  }, []);
+
+  const tabs = [
+    { id: "overview", label: "Overview", icon: "🏠" },
+    { id: "shop", label: "Shopping", icon: "🛒" },
+    { id: "parts", label: "3D Parts", icon: "🖨️" },
+    { id: "build", label: "Assembly", icon: "🔧" },
+    { id: "wiring", label: "Wiring", icon: "⚡" },
+    { id: "software", label: "Software", icon: "💻" },
+    { id: "workflow", label: "Sorting", icon: "🎯" },
+    { id: "collection", label: "Collection", icon: "🃏" },
+    { id: "files", label: "Files", icon: "📁" },
+  ];
+
+  if (loading) return <div style={{ background: S.bg, color: S.accent, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace" }}>Loading...</div>;
+
+  return (
+    <div style={{ minHeight: "100vh", background: S.bg, color: S.text, fontFamily: "'JetBrains Mono', monospace" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');*{box-sizing:border-box;margin:0;padding:0}::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#2a2a4e;border-radius:3px}input,select{font-family:inherit}`}</style>
+      {/* Nav */}
+      <div style={{ padding: "12px 16px", borderBottom: `1px solid ${S.border}`, position: "sticky", top: 0, background: S.bg + "ee", backdropFilter: "blur(10px)", zIndex: 100 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <div>
+            <div style={{ fontSize: 9, letterSpacing: 4, color: S.accent, textTransform: "uppercase", fontWeight: 600 }}>Riftbound TCG</div>
+            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 17, fontWeight: 700, color: "#fff" }}>Card Sorter Project Hub</div>
+          </div>
+          <div style={{ fontSize: 10, color: S.dim }}>{Object.values(coll).reduce((a,b)=>a+b,0)} cards collected</div>
+        </div>
+        <div style={{ display: "flex", gap: 4, overflowX: "auto", paddingBottom: 2 }}>
+          {tabs.map(t => <button key={t.id} onClick={() => setTab(t.id)} style={pill(tab === t.id)}>{t.icon} {t.label}</button>)}
+        </div>
+      </div>
+      <div style={{ padding: "20px 16px", maxWidth: 860, margin: "0 auto" }}>
+        {tab === "overview" && <Overview />}
+        {tab === "shop" && <Shopping checked={shopChecked} toggle={toggleShop} />}
+        {tab === "parts" && <Parts3D />}
+        {tab === "build" && <Assembly />}
+        {tab === "wiring" && <Wiring />}
+        {tab === "software" && <Software />}
+        {tab === "workflow" && <Workflow />}
+        {tab === "collection" && <Collection coll={coll} update={updateColl} />}
+        {tab === "files" && <Files />}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// OVERVIEW
+// ============================================================
+function Overview() {
+  const specs = [
+    ["Architecture", "Gravity slide + 6-bin rotating turntable"],
+    ["Motors", "2 NEMA 17 steppers + 1 MG996R servo"],
+    ["Vision", "Raspberry Pi 5 + Camera Module 3 + OpenCV"],
+    ["Turntable", "Ø200mm, direct-drive, no belt needed"],
+    ["Sort Bins", "6 (Fury, Calm, Mind, Body, Chaos, Order)"],
+    ["Strategy", "Two-pass: domain color first, then energy cost"],
+    ["Speed", "~2-3 sec/card (~200 cards in 15 min)"],
+    ["Est. Cost", "$140–170 total"],
+    ["Print Time", "~25-30 hrs (~700g PLA, under 1 spool)"],
+  ];
+
+  return (
+    <div>
+      <H2>Design Overview</H2>
+      <P>An automated card sorting machine for Riftbound TCG. Cards are loaded into a tilted hopper, separated one at a time by a rubber feed roller, slide down a gravity channel past a camera for identification, held by a servo gate while the turntable positions, then released into the correct bin.</P>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 8, margin: "16px 0" }}>
+        {specs.map(([k,v],i) => (
+          <div key={i} style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: "10px 14px", display: "flex", gap: 10 }}>
+            <span style={{ fontSize: 10, color: S.accent, fontWeight: 600, minWidth: 80 }}>{k}</span>
+            <span style={{ fontSize: 11, color: "#fff" }}>{v}</span>
+          </div>
+        ))}
+      </div>
+
+      <H2>Card Flow (6 Stages)</H2>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {[
+          ["📦 Hopper", "Cards stand on edge, tilted 30°. Spring pushes stack toward roller. No motor.", null],
+          ["🔄 Feed Roller", "NEMA 17 + rubber roller pulls one card through slot. Sep pad prevents doubles.", S.orange],
+          ["📐 Gravity Slide", "Card slides down 27° channel. No motor — gravity is free.", S.green],
+          ["📸 Camera", "Pi Camera captures image. IR sensor triggers at exact position.", S.pink],
+          ["🚪 Release Gate", "MG996R servo holds card while turntable positions. Then opens.", S.accent],
+          ["🎯 Turntable", "NEMA 17 direct-drive rotates 6 bins. Card drops in.", S.cyan],
+        ].map(([name, desc, color], i) => (
+          <div key={i} style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: "10px 14px", display: "flex", gap: 12, alignItems: "flex-start" }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: color || S.dim, fontFamily: "'Space Grotesk',sans-serif", minWidth: 24, textAlign: "center" }}>{i+1}</div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#fff" }}>{name}</div>
+              <div style={{ fontSize: 10, color: S.dim, marginTop: 2 }}>{desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <H2 style={{ marginTop: 24 }}>Hopper Mechanism (How It Works)</H2>
+      <P>The hopper is tilted 30° forward. Cards stand on their long edge, stacked front-to-back. Gravity pulls the stack toward the front wall. The order from back to front:</P>
+      <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: 16, margin: "10px 0", fontSize: 11, lineHeight: 1.8, color: S.text }}>
+        <span style={{color:S.green}}>Back wall</span> → <span style={{color:S.green}}>Spring</span> → <span style={{color:S.orange}}>Pusher plate</span> → <span style={{color:"#fff"}}>Card stack</span> → <span style={{color:S.pink}}>Front card contacts roller</span> → <span style={{color:S.pink}}>Roller pulls card DOWN through slot</span> → <span style={{color:S.cyan}}>Card exits onto gravity slide</span>
+      </div>
+      <P>The card exits downward — the same direction the slide goes — so there's no sharp turn. The roller only fights one card's friction against the separation pad. The spring gives constant pressure regardless of stack size (200 or 5 cards).</P>
+    </div>
+  );
+}
+
+// ============================================================
+// SHOPPING LIST
+// ============================================================
+function Shopping({ checked, toggle }) {
+  const [expanded, setExpanded] = useState(new Set());
+  const total = SHOP.reduce((a,c) => a + c.items.length, 0);
+  const bought = checked.size;
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
+        <Stat label="Est. Total" value="$140–170" />
+        <Stat label="Purchased" value={`${bought}/${total}`} />
+      </div>
+      {SHOP.map((cat, ci) => (
+        <div key={ci} style={{ marginBottom: 24 }}>
+          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 14, fontWeight: 600, color: "#fff", marginBottom: 8 }}>{cat.cat}</div>
+          {cat.items.map((item, ii) => {
+            const key = `${ci}-${ii}`;
+            const done = checked.has(key);
+            const open = expanded.has(key);
+            return (
+              <div key={ii} style={{ background: done ? "#0a1a0a" : S.card, border: `1px solid ${done ? S.green+"33" : S.border}`, borderRadius: 8, marginBottom: 4, opacity: done ? 0.6 : 1 }}>
+                <div style={{ padding: "10px 12px", display: "flex", gap: 8, alignItems: "flex-start" }}>
+                  <div onClick={() => toggle(key)} style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${done ? S.green : S.dark}`, background: done ? S.green : "transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#fff", cursor: "pointer", flexShrink: 0, marginTop: 1 }}>{done&&"✓"}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 11, color: done ? "#6a8a6a" : "#fff", fontWeight: 500, textDecoration: done ? "line-through" : "none" }}>{item.name}</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: S.accent, fontFamily: "'Space Grotesk',sans-serif", flexShrink: 0 }}>{item.price}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: 6, marginTop: 5 }}>
+                      <a href={item.link} target="_blank" rel="noopener noreferrer" style={{ fontSize: 9, color: S.accent, textDecoration: "none", padding: "2px 8px", border: `1px solid ${S.accent}33`, borderRadius: 4 }}>Amazon →</a>
+                      <button onClick={() => setExpanded(p => { const n=new Set(p); n.has(key)?n.delete(key):n.add(key); return n; })} style={{ fontSize: 9, color: S.dim, background: "transparent", border: `1px solid ${S.border}`, borderRadius: 4, padding: "2px 8px", cursor: "pointer", fontFamily: "inherit" }}>{open?"Hide":"Compat ✓"}</button>
+                    </div>
+                    {open && <div style={{ marginTop: 8, borderTop: `1px solid ${S.border}`, paddingTop: 8 }}>
+                      <div style={{ fontSize: 10, color: S.green, lineHeight: 1.6 }}>{item.compat}</div>
+                      <div style={{ fontSize: 10, color: S.dim, marginTop: 4 }}>💡 {item.note}</div>
+                    </div>}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+      <div style={{ background: S.card, border: `1px solid ${S.green}33`, borderRadius: 8, padding: 14, fontSize: 10, color: S.dim, lineHeight: 1.8 }}>
+        <div style={{ color: S.green, fontWeight: 600, marginBottom: 6, letterSpacing: 2, textTransform: "uppercase", fontSize: 9 }}>Power Compatibility</div>
+        <b style={{color:"#fff"}}>12V 5A</b> → TMC2209 VMOT → NEMA 17s ✅<br/>
+        <b style={{color:"#fff"}}>12V → Buck → 5.5V</b> → MG996R servo ✅<br/>
+        <b style={{color:"#fff"}}>Pi 3.3V</b> → TMC2209 VIO + STEP/DIR ✅<br/>
+        <b style={{color:"#fff"}}>Pi CSI 22-pin</b> ← adapter ← Camera 15-pin ✅<br/>
+        <b style={{color:S.orange}}>⚠️ ALL GND tied together</b>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// 3D PARTS
+// ============================================================
+function Parts3D() {
+  const [active, setActive] = useState(0);
+  const p = PARTS_3D[active];
+  return (
+    <div>
+      <H2>3D Printed Parts</H2>
+      <P>13 total objects (6 bins + 7 unique). Edit parameters.scad to change card dimensions. OpenSCAD files in the downloadable package.</P>
+      <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 16 }}>
+        {PARTS_3D.map((p,i) => <button key={i} onClick={() => setActive(i)} style={pill(active===i)}>#{p.num}</button>)}
+      </div>
+      <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 10, padding: 16 }}>
+        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 16, fontWeight: 600, color: "#fff", marginBottom: 12 }}>#{p.num} — {p.name}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+          {[["External", p.ext],["Internal", p.inner],["Orientation", p.orient],["Infill", p.infill],["Print Time", p.time],["Filament", p.weight]].map(([k,v],i) => (
+            <div key={i} style={{ background: S.bg, borderRadius: 6, padding: "8px 10px" }}>
+              <div style={{ fontSize: 8, color: S.dim, letterSpacing: 1.5, textTransform: "uppercase" }}>{k}</div>
+              <div style={{ fontSize: 11, color: "#fff", fontWeight: 500, marginTop: 2 }}>{v}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 10, color: S.dim, lineHeight: 1.7, padding: "10px 0", borderTop: `1px solid ${S.border}` }}>{p.notes}</div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 16 }}>
+        <Stat label="Total Print" value="25-30 hrs" />
+        <Stat label="Filament" value="~700g" />
+        <Stat label="Objects" value="13 parts" />
+      </div>
+      <div style={{ marginTop: 16, fontSize: 10, color: S.dim, lineHeight: 1.7, background: S.card, borderRadius: 8, padding: 14, border: `1px solid ${S.border}` }}>
+        <b style={{ color: S.orange }}>Card Dimensions (parameters.scad):</b><br/>
+        Sleeved: 66×91mm (default) → channels are 68×93mm<br/>
+        Unsleeved: 63×88mm → change card_width/card_height<br/>
+        Double-sleeved: 69×94mm → all parts auto-update
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// ASSEMBLY
+// ============================================================
+function Assembly() {
+  return (
+    <div>
+      <H2>Assembly Instructions (10 Steps)</H2>
+      <P>Overall machine dimensions: ~350mm wide × 400mm deep × 500mm tall.</P>
+      {ASSEMBLY.map((s, i) => (
+        <div key={i} style={{ display: "flex", gap: 12, marginBottom: 10, alignItems: "flex-start" }}>
+          <div style={{ width: 28, height: 28, borderRadius: 6, background: S.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif", flexShrink: 0 }}>{i+1}</div>
+          <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: "10px 14px", flex: 1 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "#fff", marginBottom: 4 }}>{s.title}</div>
+            <div style={{ fontSize: 10, color: S.dim, lineHeight: 1.7 }}>{s.desc}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============================================================
+// WIRING
+// ============================================================
+function Wiring() {
+  return (
+    <div>
+      <H2>Wiring Guide</H2>
+      <H3>GPIO Connections</H3>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}>
+          <thead><tr>{["Connection","Pi GPIO","Destination"].map((h,i) => <th key={i} style={{ background: S.card, color: "#fff", padding: "8px 10px", textAlign: "left", borderBottom: `1px solid ${S.border}` }}>{h}</th>)}</tr></thead>
+          <tbody>{WIRING.map((w,i) => (
+            <tr key={i}><td style={{ padding: "6px 10px", borderBottom: `1px solid ${S.border}`, color: S.accent, fontWeight: 500 }}>{w.conn}</td><td style={{ padding: "6px 10px", borderBottom: `1px solid ${S.border}` }}>{w.pin}</td><td style={{ padding: "6px 10px", borderBottom: `1px solid ${S.border}`, color: S.dim }}>{w.to}</td></tr>
+          ))}</tbody>
+        </table>
+      </div>
+      <H3>Power Chain</H3>
+      {POWER_CHAIN.map((p,i) => (
+        <div key={i} style={{ fontSize: 10, color: i===5 ? S.orange : S.text, lineHeight: 1.8, paddingLeft: 12, borderLeft: `2px solid ${i===5 ? S.orange : S.accent}33` }}>{p}</div>
+      ))}
+      <H3>TMC2209 Wiring (each driver)</H3>
+      <div style={{ background: S.card, borderRadius: 8, padding: 14, border: `1px solid ${S.border}`, fontSize: 10, color: S.dim, lineHeight: 1.8 }}>
+        VMOT → 12V(+) &nbsp;|&nbsp; GND → 12V(-) &nbsp;|&nbsp; VIO → Pi 3.3V &nbsp;|&nbsp; GND → Pi GND<br/>
+        STEP → GPIO pin &nbsp;|&nbsp; DIR → GPIO pin &nbsp;|&nbsp; EN → GPIO pin<br/>
+        A1,A2 → Motor coil A (Black, Green) &nbsp;|&nbsp; B1,B2 → Motor coil B (Red, Blue)
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// SOFTWARE
+// ============================================================
+function Software() {
+  return (
+    <div>
+      <H2>Software Setup</H2>
+      <H3>Pi OS Setup</H3>
+      <Code>{`# Flash Raspberry Pi OS 64-bit (Bookworm+) to MicroSD
+# Boot, connect WiFi, then:
+sudo apt update && sudo apt upgrade
+sudo raspi-config  # Interface Options → Camera → Enable
+pip install opencv-python picamera2 numpy RPi.GPIO pigpio`}</Code>
+
+      <H3>Card Recognition (Pass 1: Domain Color)</H3>
+      <P>Each Riftbound domain has a distinct frame color. HSV color detection on the card border identifies the domain — no neural network needed.</P>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, margin: "10px 0" }}>
+        {DOMAINS.map(d => (
+          <div key={d.name} style={{ background: d.color+"18", border: `1px solid ${d.color}44`, borderRadius: 6, padding: "6px 10px", textAlign: "center" }}>
+            <div style={{ fontSize: 14 }}>{d.icon}</div>
+            <div style={{ fontSize: 10, fontWeight: 600, color: d.color }}>{d.name}</div>
+          </div>
+        ))}
+      </div>
+
+      <H3>Running the Sorter</H3>
+      <Code>{`# Pass 1: Sort by domain color
+python3 sorter_main.py --mode domain
+
+# Pass 2: Sort each domain pile by cost
+python3 sorter_main.py --mode cost
+
+# Test mode (mock hardware, 10 cards)
+python3 sorter_main.py --test --mode domain`}</Code>
+
+      <H3>Main Sort Loop</H3>
+      <Code>{`while cards_remaining:
+    motor_feed.step(STEPS_PER_CARD)     # feed one card
+    wait_for_ir_trigger()                # card reaches camera
+    image = camera.capture()             # snap image
+    domain, cost = identify_card(image)  # OpenCV
+    target_bin = get_bin_index(domain)   # which of 6
+    turntable.rotate_to(target_bin)      # position
+    gate_servo.open()                    # release card
+    sleep(0.3)                           # card drops
+    gate_servo.close()                   # next card`}</Code>
+
+      <H3>Supabase Schema (for Collection App)</H3>
+      <Code>{`create table cards (
+  id text primary key, name text, domain text,
+  cost int, rarity text, type text, set_name text,
+  market_value numeric(8,2), image_hash text
+);
+create table collection (
+  id uuid primary key default gen_random_uuid(),
+  card_id text references cards(id),
+  quantity int default 1, condition text default 'NM',
+  foil boolean default false, scanned_at timestamptz
+);
+create table scan_log (
+  id uuid primary key default gen_random_uuid(),
+  card_id text references cards(id),
+  domain_detected text, confidence numeric(5,2),
+  sort_bin int, scanned_at timestamptz default now()
+);`}</Code>
+    </div>
+  );
+}
+
+// ============================================================
+// WORKFLOW
+// ============================================================
+function Workflow() {
+  return (
+    <div>
+      <H2>Two-Pass Sorting Workflow</H2>
+
+      <div style={{ background: S.card, border: `1px solid ${S.accent}33`, borderRadius: 10, padding: 16, marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 6, background: S.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif" }}>1</div>
+          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 15, fontWeight: 600, color: "#fff" }}>Sort by Domain Color</div>
+        </div>
+        <P>Load entire unsorted collection (~200 cards). Camera detects frame color via HSV. ~15 min. Result: 6 domain piles.</P>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "10px 0" }}>
+          {DOMAINS.map((d,i) => (
+            <div key={i} style={{ background: d.color+"18", border: `1px solid ${d.color}44`, borderRadius: 6, padding: "6px 12px", textAlign: "center" }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: d.color }}>{d.icon} {d.name}</div>
+              <div style={{ fontSize: 8, color: S.dim }}>Bin {i+1}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 10, color: S.dim, background: S.bg, borderRadius: 6, padding: 10, marginTop: 8 }}>
+          <b style={{ color: S.green }}>Software:</b> Simple HSV color detection — Fury=Red (H:0-10), Calm=Green (H:35-85), Mind=Blue (H:100-130), Body=Orange (H:10-25), Chaos=Purple (H:130-165), Order=Yellow (H:25-35)
+        </div>
+      </div>
+
+      <div style={{ textAlign: "center", color: S.dark, fontSize: 16, margin: "8px 0" }}>↓ take each pile, run again ↓</div>
+
+      <div style={{ background: S.card, border: `1px solid ${S.cyan}33`, borderRadius: 10, padding: 16, marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 6, background: S.cyan, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif" }}>2</div>
+          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 15, fontWeight: 600, color: "#fff" }}>Sort by Cost (×6 runs)</div>
+        </div>
+        <P>Switch software to "cost mode." Run each domain pile separately. ~15 min total for all 6 piles.</P>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "10px 0" }}>
+          {["0-1","2-3","4-5","6-7","8+","Runes"].map((t,i) => (
+            <div key={i} style={{ background: S.cyan+"12", border: `1px solid ${S.cyan}33`, borderRadius: 6, padding: "6px 12px", textAlign: "center" }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: S.cyan }}>{t}</div>
+              <div style={{ fontSize: 8, color: S.dim }}>Bin {i+1}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ background: S.card, border: `1px solid ${S.green}33`, borderRadius: 10, padding: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 6, background: S.green, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700 }}>✓</div>
+          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 15, fontWeight: 600, color: "#fff" }}>Result: Fully Organized</div>
+        </div>
+        <P>6 domains × 6 cost tiers = up to 36 sorted groups. Total time: ~30 min from shuffled pile to organized collection.</P>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// COLLECTION MANAGER
+// ============================================================
+function Collection({ coll, update }) {
+  const [sub, setSub] = useState("dash");
+  const [search, setSearch] = useState("");
+  const [domFilt, setDomFilt] = useState("All");
+
+  const totalOwned = Object.values(coll).reduce((a,b) => a+b, 0);
+  const uniqueOwned = Object.keys(coll).length;
+  const totalValue = Object.entries(coll).reduce((s,[id,q]) => { const c=ALL_CARDS.find(x=>x.id===id); return s+(c?c.value*q:0); }, 0);
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>
+        {[["dash","Dashboard"],["browse","Browse"],["add","Add Cards"]].map(([id,label]) => (
+          <button key={id} onClick={() => setSub(id)} style={pill(sub===id)}>{label}</button>
+        ))}
+      </div>
+
+      {sub === "dash" && <>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 8, marginBottom: 20 }}>
+          <Stat label="Total Cards" value={totalOwned} sub={`${uniqueOwned} unique`} />
+          <Stat label="Completion" value={`${((uniqueOwned/ALL_CARDS.length)*100).toFixed(1)}%`} sub={`${uniqueOwned}/${ALL_CARDS.length}`} />
+          <Stat label="Value" value={`$${totalValue.toFixed(2)}`} sub="est. market" />
+        </div>
+        <H3>Domain Completion</H3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(120px,1fr))", gap: 6, marginBottom: 16 }}>
+          {DOMAINS.map(d => {
+            const dc = ALL_CARDS.filter(c=>c.domain===d.name);
+            const owned = dc.filter(c=>coll[c.id]).length;
+            const pct = dc.length > 0 ? (owned/dc.length*100).toFixed(0) : 0;
+            return (
+              <div key={d.name} style={{ background: S.card, border: `1px solid ${d.color}33`, borderRadius: 8, padding: "10px 12px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, color: d.color, fontWeight: 600 }}>{d.icon} {d.name}</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: "#fff", fontFamily: "'Space Grotesk',sans-serif" }}>{pct}%</span>
+                </div>
+                <div style={{ background: S.bg, borderRadius: 3, height: 5, overflow: "hidden" }}>
+                  <div style={{ width: `${pct}%`, height: "100%", background: d.color, borderRadius: 3 }} />
+                </div>
+                <div style={{ fontSize: 8, color: S.dim, marginTop: 3 }}>{owned}/{dc.length}</div>
+              </div>
+            );
+          })}
+        </div>
+        <H3>Most Valuable Owned</H3>
+        {ALL_CARDS.filter(c=>coll[c.id]).sort((a,b)=>b.value*coll[b.id]-a.value*coll[a.id]).slice(0,5).map(c => {
+          const d = DOMAINS.find(x=>x.name===c.domain);
+          return (
+            <div key={c.id} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${S.border}`, fontSize: 11 }}>
+              <span><span style={{ color: d?.color }}>{d?.icon}</span> {c.name} <span style={{ color: S.dim, fontSize: 9 }}>×{coll[c.id]}</span></span>
+              <span style={{ color: S.green, fontWeight: 600 }}>${(c.value*coll[c.id]).toFixed(2)}</span>
+            </div>
+          );
+        })}
+        {uniqueOwned === 0 && <div style={{ color: S.dark, fontSize: 11, padding: 20, textAlign: "center" }}>No cards yet. Go to "Add Cards" to start building your collection.</div>}
+      </>}
+
+      {(sub === "browse" || sub === "add") && <>
+        <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+          <input placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} style={{ background: S.card, border: `1px solid ${S.border}`, color: "#fff", padding: "6px 10px", borderRadius: 6, fontSize: 11, flex: "1 1 150px" }} />
+          <select value={domFilt} onChange={e => setDomFilt(e.target.value)} style={{ background: S.card, border: `1px solid ${S.border}`, color: "#fff", padding: "6px 8px", borderRadius: 6, fontSize: 11 }}>
+            <option value="All">All Domains</option>
+            {DOMAINS.map(d => <option key={d.name} value={d.name}>{d.icon} {d.name}</option>)}
+          </select>
+        </div>
+        {ALL_CARDS
+          .filter(c => {
+            if (sub === "browse" && !coll[c.id]) return false;
+            if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
+            if (domFilt !== "All" && c.domain !== domFilt) return false;
+            return true;
+          })
+          .sort((a,b) => a.name.localeCompare(b.name))
+          .map(c => {
+            const d = DOMAINS.find(x=>x.name===c.domain);
+            const q = coll[c.id] || 0;
+            const rc = {Common:"#6a6a8e",Uncommon:"#16a34a",Rare:"#2563eb",Epic:"#9333ea",Legendary:"#eab308"};
+            return (
+              <div key={c.id} style={{ background: q>0?S.card:S.bg, border: `1px solid ${q>0?S.border:"#12122a"}`, borderRadius: 6, padding: "8px 10px", marginBottom: 3, display: "flex", alignItems: "center", justifyContent: "space-between", opacity: q>0?1:0.55 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+                  <div style={{ width: 24, height: 24, borderRadius: 4, background: d?.color+"22", border: `1px solid ${d?.color}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: d?.color, flexShrink: 0 }}>{c.cost}</div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 11, color: "#fff", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</div>
+                    <div style={{ fontSize: 8, color: S.dim }}><span style={{ color: d?.color }}>{c.domain}</span> · <span style={{ color: rc[c.rarity] }}>{c.rarity}</span> · {c.type} · ${c.value}</div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                  <button onClick={() => update(c.id, Math.max(0,q-1))} style={{ background: S.card, border: `1px solid ${S.border}`, color: S.dim, width: 22, height: 22, borderRadius: 4, cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>-</button>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: q>0?"#fff":S.dark, width: 20, textAlign: "center" }}>{q}</span>
+                  <button onClick={() => update(c.id, q+1)} style={{ background: S.card, border: `1px solid ${S.border}`, color: S.dim, width: 22, height: 22, borderRadius: 4, cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
+                </div>
+              </div>
+            );
+          })}
+      </>}
+    </div>
+  );
+}
+
+// ============================================================
+// FILES & DOWNLOADS
+// ============================================================
+const FILE_SECTIONS = [
+  {
+    cat: "📐 OpenSCAD 3D Models",
+    desc: "Open in OpenSCAD (free), press F6 to render, export as STL for your slicer.",
+    files: [
+      { name: "parameters.scad", desc: "Master config — edit card dimensions here, all parts auto-update", code: `// RIFTBOUND TCG CARD SORTER - MASTER PARAMETERS
+// All dimensions in millimeters
+
+// --- Card Dimensions (with sleeves) ---
+card_width = 66;        // sleeved width (63 unsleeved, 69 double)
+card_height = 91;       // sleeved height (88 unsleeved, 94 double)
+card_thickness = 0.5;
+card_clearance = 2;
+slot_width = card_width + card_clearance;   // 68mm
+slot_height = card_height + card_clearance; // 93mm
+
+// --- Walls ---
+wall = 3;
+thick_wall = 5;
+
+// --- NEMA 17 Motor ---
+nema17_face = 42.3;
+nema17_hole_spacing = 31;
+nema17_hole_dia = 3.2;
+nema17_shaft_dia = 5;
+nema17_boss_dia = 22;
+
+// --- MG996R Servo ---
+servo_body_w = 40.7;
+servo_body_d = 19.7;
+servo_body_h = 42.9;
+servo_tab_w = 54.5;
+servo_hole_spacing = 49.5;
+
+// --- Turntable ---
+num_bins = 6;
+turntable_dia = 200;
+turntable_thickness = 5;
+
+// --- Hopper ---
+hopper_capacity = 200;
+hopper_angle = 30;
+
+// --- Slide ---
+slide_angle = 27;
+slide_length = 220;
+
+$fn = 60;` },
+      { name: "01_card_hopper.scad", desc: "Tilted hopper + pusher plate (74×99×140mm)", code: `include <parameters.scad>
+
+hopper_stack_height = hopper_capacity * card_thickness;
+hopper_internal_w = slot_width;
+hopper_internal_d = slot_height;
+hopper_total_h = hopper_stack_height + 40;
+feed_slot_h = 8;
+feed_slot_w = hopper_internal_w - 10;
+spring_pocket_dia = 12;
+spring_pocket_depth = 15;
+window_width = 30;
+window_height = hopper_total_h - 30;
+
+module card_hopper() {
+  difference() {
+    cube([hopper_internal_w + wall*2, hopper_internal_d + wall*2, hopper_total_h]);
+    translate([wall, wall, wall])
+      cube([hopper_internal_w, hopper_internal_d, hopper_total_h + 1]);
+    // Feed slot
+    translate([(hopper_internal_w + wall*2 - feed_slot_w)/2, -1, 0])
+      cube([feed_slot_w, wall+2, feed_slot_h]);
+    // Window
+    translate([hopper_internal_w + wall*2 - wall/2, (hopper_internal_d + wall*2 - window_width)/2, 20])
+      cube([wall+1, window_width, window_height]);
+    // Spring pocket
+    translate([(hopper_internal_w + wall*2)/2, (hopper_internal_d + wall*2)/2, wall-0.1])
+      cylinder(d=spring_pocket_dia, h=spring_pocket_depth);
+  }
+}
+
+module pusher_plate() {
+  difference() {
+    cube([hopper_internal_w - 1, hopper_internal_d - 1, 2]);
+    translate([(hopper_internal_w-1)/2, (hopper_internal_d-1)/2, -0.1])
+      cylinder(d=spring_pocket_dia - 1, h=1.2);
+  }
+}
+
+card_hopper();` },
+      { name: "02_feed_roller_mount.scad", desc: "NEMA 17 mount + separation pad holder", code: `include <parameters.scad>
+
+mount_w = 70; mount_h = 60; mount_depth = 10;
+roller_window_w = 50; roller_window_h = 20;
+
+module feed_roller_mount() {
+  difference() {
+    union() {
+      cube([mount_w, mount_h, mount_depth]);
+      for (y = [5, mount_h-15]) {
+        translate([-10, y, 0]) cube([10, 10, mount_depth]);
+        translate([mount_w, y, 0]) cube([10, 10, mount_depth]);
+      }
+    }
+    translate([mount_w/2, mount_h/2, -1])
+      cylinder(d=nema17_boss_dia+2, h=mount_depth+2);
+    for (dx=[-1,1], dy=[-1,1])
+      translate([mount_w/2+dx*nema17_hole_spacing/2, mount_h/2+dy*nema17_hole_spacing/2, -1])
+        cylinder(d=nema17_hole_dia, h=mount_depth+2);
+    translate([(mount_w-roller_window_w)/2, mount_h/2+5, -1])
+      cube([roller_window_w, roller_window_h, mount_depth+2]);
+    for (y=[10, mount_h-10]) {
+      translate([-5, y, -1]) cylinder(d=5, h=mount_depth+2);
+      translate([mount_w+5, y, -1]) cylinder(d=5, h=mount_depth+2);
+    }
+  }
+}
+
+module separation_pad_holder() {
+  difference() {
+    cube([60, 22, 6]);
+    translate([5, 5, 3]) cube([50, 12, 4]);
+    for (dx=[5, 55]) translate([dx, 11, -1]) cylinder(d=3.2, h=10);
+  }
+}
+
+feed_roller_mount();
+translate([0, mount_h+10, 0]) separation_pad_holder();` },
+      { name: "03_gravity_slide.scad", desc: "Angled slide channel with camera window (74×220×15mm)", code: `include <parameters.scad>
+
+channel_w = slot_width + wall*2;
+rail_h = 15; base_thickness = 3;
+camera_window_w = 50; camera_window_l = 70;
+camera_pos = slide_length * 0.45;
+sensor_hole_dia = 6;
+sensor_pos = camera_pos - 10;
+
+module gravity_slide() {
+  difference() {
+    union() {
+      cube([channel_w, slide_length, base_thickness]);
+      cube([wall, slide_length, rail_h]);
+      translate([channel_w-wall, 0, 0]) cube([wall, slide_length, rail_h]);
+      for (y=[20, slide_length-20]) {
+        translate([-15, y-10, 0]) cube([15, 20, base_thickness]);
+        translate([channel_w, y-10, 0]) cube([15, 20, base_thickness]);
+      }
+    }
+    translate([(channel_w-camera_window_w)/2, camera_pos-camera_window_l/2, -1])
+      cube([camera_window_w, camera_window_l, base_thickness+2]);
+    translate([-1, sensor_pos, rail_h/2]) rotate([0,90,0])
+      cylinder(d=sensor_hole_dia, h=wall+2);
+    translate([channel_w-wall-1, sensor_pos, rail_h/2]) rotate([0,90,0])
+      cylinder(d=sensor_hole_dia, h=wall+2);
+    for (y=[20, slide_length-20]) {
+      translate([-7.5, y, -1]) cylinder(d=5, h=base_thickness+2);
+      translate([channel_w+7.5, y, -1]) cylinder(d=5, h=base_thickness+2);
+    }
+  }
+}
+gravity_slide();` },
+      { name: "06v3_turntable_disc.scad", desc: "6-bin turntable, Ø200mm, direct drive (FINAL)", code: `// 6-BIN TURNTABLE - Direct drive, no belt
+// Fits standard 220mm print bed
+
+card_width = 66; card_height = 91; card_clearance = 2;
+slot_width = card_width + card_clearance;
+slot_height = card_height + card_clearance;
+num_bins = 6;
+turntable_dia = 200;
+turntable_thickness = 5;
+wall = 3;
+shaft_dia = 5; shaft_flat = 4.5;
+hub_od = 24; hub_h = 12;
+bin_slot_w = slot_width + 4;
+bin_slot_d = slot_height + 6;
+bin_slot_depth = 4;
+bin_center_radius = turntable_dia/2 - bin_slot_d/2 - 3;
+$fn = 80;
+
+module d_shaft_hole(d, flat, h) {
+  intersection() {
+    cylinder(d=d+0.3, h=h);
+    translate([-(d+1)/2, -d/2, 0]) cube([d+1, flat+0.15, h]);
+  }
+}
+
+module turntable_disc_v3() {
+  difference() {
+    union() {
+      cylinder(d=turntable_dia, h=turntable_thickness);
+      cylinder(d=hub_od, h=turntable_thickness + hub_h);
+    }
+    translate([0,0,-1]) d_shaft_hole(shaft_dia, shaft_flat, turntable_thickness+hub_h+2);
+    translate([0,0,turntable_thickness+hub_h/2]) rotate([0,90,0]) cylinder(d=3, h=hub_od);
+    for (i=[0:num_bins-1]) {
+      rotate([0,0,i*360/num_bins])
+        translate([bin_center_radius-bin_slot_d/2, -bin_slot_w/2, turntable_thickness-bin_slot_depth])
+          cube([bin_slot_d, bin_slot_w, bin_slot_depth+1]);
+    }
+    for (i=[0:num_bins-1]) {
+      rotate([0,0,i*360/num_bins+30])
+        translate([turntable_dia*0.3, 0, -1]) cylinder(d=18, h=turntable_thickness+2);
+    }
+  }
+  for (i=[0:num_bins-1]) {
+    rotate([0,0,i*360/num_bins])
+      for (dot=[0:i])
+        translate([turntable_dia/2-6, -3+dot*4, turntable_thickness])
+          cylinder(d=2.5, h=0.8);
+  }
+}
+turntable_disc_v3();` },
+      { name: "07_card_bin.scad", desc: "Removable card bin — print 6 (74×99×57mm)", code: `// CARD BIN - Print 6 (one per domain)
+card_width = 66; card_height = 91;
+slot_width = card_width + 2; slot_height = card_height + 2;
+bin_w = slot_width + 2; bin_d = slot_height + 2;
+bin_h = 40; bin_wall = 2; bin_floor = 2;
+funnel_flare = 5; funnel_h = 15;
+$fn = 60;
+
+module card_bin() {
+  total_w = bin_w + bin_wall*2;
+  total_d = bin_d + bin_wall*2;
+  difference() {
+    union() {
+      cube([total_w, total_d, bin_floor + bin_h]);
+      translate([0,0,bin_floor+bin_h]) hull() {
+        cube([total_w, total_d, 0.1]);
+        translate([-funnel_flare,-funnel_flare,funnel_h])
+          cube([total_w+funnel_flare*2, total_d+funnel_flare*2, 0.1]);
+      }
+      for (dx=[total_w/2-5, total_w/2+1]) {
+        translate([dx,-2,0]) cube([4,2,3]);
+        translate([dx,total_d,0]) cube([4,2,3]);
+      }
+    }
+    translate([bin_wall,bin_wall,bin_floor])
+      cube([bin_w, bin_d, bin_h+funnel_h+1]);
+    translate([bin_wall,bin_wall,bin_floor+bin_h]) hull() {
+      cube([bin_w, bin_d, 0.1]);
+      translate([-funnel_flare,-funnel_flare,funnel_h])
+        cube([bin_w+funnel_flare*2, bin_d+funnel_flare*2, 0.1]);
+    }
+    translate([(total_w-50)/2, -0.1, bin_floor+bin_h-20])
+      cube([50, 1.2, 15]);
+    translate([total_w/2, total_d+bin_wall, bin_floor+12])
+      rotate([90,0,0]) cylinder(d=28, h=bin_wall+2);
+  }
+}
+card_bin();` },
+    ]
+  },
+  {
+    cat: "🐍 Python Software",
+    desc: "Copy to your Raspberry Pi. Run with: python3 sorter_main.py --mode domain",
+    files: [
+      { name: "sorter_main.py", desc: "Main sorting program (domain + cost modes)", code: `#!/usr/bin/env python3
+"""Riftbound TCG Card Sorter — Pi 5 Control Software"""
+import time, argparse
+
+# GPIO Pins
+FEED_STEP, FEED_DIR, FEED_EN = 17, 27, 22
+TABLE_STEP, TABLE_DIR, TABLE_EN = 23, 24, 25
+SERVO_PIN, IR_SENSOR = 18, 4
+STEPS_PER_CARD = 200
+STEPS_PER_BIN = 33  # 200 steps/rev / 6 bins
+STEP_DELAY = 0.002
+
+DOMAINS = {
+  "Fury":  {"bin":0, "hsv_low":(0,100,80), "hsv_high":(10,255,255)},
+  "Calm":  {"bin":1, "hsv_low":(35,80,60), "hsv_high":(85,255,255)},
+  "Mind":  {"bin":2, "hsv_low":(100,80,60),"hsv_high":(130,255,255)},
+  "Body":  {"bin":3, "hsv_low":(10,100,80),"hsv_high":(25,255,255)},
+  "Chaos": {"bin":4, "hsv_low":(130,60,50),"hsv_high":(165,255,255)},
+  "Order": {"bin":5, "hsv_low":(25,100,80),"hsv_high":(35,255,255)},
+}
+
+COST_TIERS = {0:0,1:0, 2:1,3:1, 4:2,5:2, 6:3,7:3, 8:4,9:4,10:4,11:4,12:4}
+
+try:
+    import RPi.GPIO as GPIO
+    from picamera2 import Picamera2
+    import cv2, numpy as np
+    ON_PI = True
+except ImportError:
+    ON_PI = False
+    print("[WARN] Not on Pi — mock mode")
+
+class Stepper:
+    def __init__(self, step, dir, en):
+        self.step, self.dir, self.en, self.pos = step, dir, en, 0
+        if ON_PI:
+            GPIO.setup(step, GPIO.OUT)
+            GPIO.setup(dir, GPIO.OUT)
+            GPIO.setup(en, GPIO.OUT)
+            GPIO.output(en, GPIO.LOW)
+    def move(self, steps, direction=1):
+        if ON_PI:
+            GPIO.output(self.dir, GPIO.HIGH if direction > 0 else GPIO.LOW)
+            for _ in range(abs(steps)):
+                GPIO.output(self.step, GPIO.HIGH)
+                time.sleep(STEP_DELAY)
+                GPIO.output(self.step, GPIO.LOW)
+                time.sleep(STEP_DELAY)
+        self.pos += steps * direction
+        print(f"  [MOTOR] Moved {steps} steps")
+
+class Turntable:
+    def __init__(self, stepper):
+        self.stepper, self.current = stepper, 0
+    def rotate_to(self, target):
+        if target == self.current: return
+        diff = (target - self.current) % 6
+        if diff > 3: diff -= 6
+        self.stepper.move(abs(diff * STEPS_PER_BIN), 1 if diff > 0 else -1)
+        self.current = target
+        print(f"  [TABLE] → Bin {target}")
+
+def identify_domain(image):
+    if not ON_PI: return "Fury"
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    h, w = image.shape[:2]
+    border = hsv[int(h*0.02):int(h*0.08), int(w*0.1):int(w*0.9)]
+    best, best_score = None, 0
+    for name, info in DOMAINS.items():
+        mask = cv2.inRange(border, np.array(info["hsv_low"]), np.array(info["hsv_high"]))
+        score = np.sum(mask > 0)
+        if score > best_score: best, best_score = name, score
+    return best or "Unknown"
+
+def sort_cards(mode="domain", max_cards=None):
+    print(f"\\n=== RIFTBOUND SORTER — {mode.upper()} MODE ===\\n")
+    if ON_PI:
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(IR_SENSOR, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    feed = Stepper(FEED_STEP, FEED_DIR, FEED_EN)
+    table = Turntable(Stepper(TABLE_STEP, TABLE_DIR, TABLE_EN))
+    cam = Picamera2() if ON_PI else None
+    if cam:
+        cam.configure(cam.create_still_configuration(main={"size":(1920,1080)}))
+        cam.start(); time.sleep(1)
+    count = 0
+    try:
+        while max_cards is None or count < max_cards:
+            print(f"\\n--- Card #{count+1} ---")
+            feed.move(STEPS_PER_CARD)
+            if ON_PI:
+                t = time.time()
+                while time.time()-t < 5:
+                    if GPIO.input(IR_SENSOR) == GPIO.LOW: break
+                    time.sleep(0.001)
+            image = cam.capture_array() if cam else None
+            if mode == "domain":
+                domain = identify_domain(image) if image is not None else "Fury"
+                target = DOMAINS.get(domain, {}).get("bin", 0)
+                print(f"  Domain: {domain} → Bin {target}")
+            else:
+                cost = 3  # TODO: OCR or template match
+                target = COST_TIERS.get(min(cost,12), 4)
+                print(f"  Cost: {cost} → Bin {target}")
+            table.rotate_to(target)
+            print("  Gate OPEN"); time.sleep(0.3); print("  Gate CLOSED")
+            count += 1
+    except KeyboardInterrupt:
+        print("\\n[STOPPED]")
+    finally:
+        if cam: cam.stop()
+        if ON_PI: GPIO.cleanup()
+    print(f"\\n=== DONE: {count} cards sorted ===")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", choices=["domain","cost"], default="domain")
+    parser.add_argument("--max", type=int, default=None)
+    parser.add_argument("--test", action="store_true")
+    args = parser.parse_args()
+    sort_cards(args.mode, 10 if args.test else args.max)` },
+      { name: "requirements.txt", desc: "Python dependencies for Pi", code: `opencv-python>=4.8.0
+numpy>=1.24.0
+picamera2>=0.3.12
+RPi.GPIO>=0.7.1
+pigpio>=1.78` },
+    ]
+  },
+  {
+    cat: "🗄️ Supabase Schema",
+    desc: "Run in Supabase SQL editor to set up the collection database.",
+    files: [
+      { name: "schema.sql", desc: "Complete database schema for cards, collection, decks, scan log", code: `-- Riftbound Card Sorter — Supabase Schema
+
+create table cards (
+  id text primary key,
+  name text not null,
+  domain text not null,
+  cost integer not null,
+  rarity text not null,
+  type text not null,
+  set_name text not null,
+  market_value numeric(8,2) default 0,
+  image_hash text,
+  updated_at timestamptz default now()
+);
+
+create table collection (
+  id uuid default gen_random_uuid() primary key,
+  card_id text references cards(id),
+  quantity integer default 1,
+  condition text default 'Near Mint',
+  foil boolean default false,
+  scanned_at timestamptz default now(),
+  unique(card_id, condition, foil)
+);
+
+create table decks (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  legend text,
+  domain1 text not null,
+  domain2 text not null,
+  created_at timestamptz default now()
+);
+
+create table deck_cards (
+  deck_id uuid references decks(id) on delete cascade,
+  card_id text references cards(id),
+  quantity integer default 1,
+  primary key (deck_id, card_id)
+);
+
+create table scan_log (
+  id uuid default gen_random_uuid() primary key,
+  card_id text references cards(id),
+  domain_detected text,
+  confidence numeric(5,2),
+  sort_bin integer,
+  scanned_at timestamptz default now()
+);` },
+    ]
+  },
+];
+
+function Files() {
+  const [expanded, setExpanded] = useState(new Set());
+  const [copied, setCopied] = useState(null);
+
+  const copyCode = (code, key) => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopied(key);
+      setTimeout(() => setCopied(null), 2000);
+    }).catch(() => {});
+  };
+
+  const toggleFile = (key) => {
+    setExpanded(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
+  };
+
+  return (
+    <div>
+      <H2>Project Files</H2>
+      <P>All source code for the project. Click any file to view its contents, then copy to clipboard or save locally. Put all .scad files in the same folder — they reference parameters.scad.</P>
+
+      <div style={{ background: S.card, border: `1px solid ${S.orange}33`, borderRadius: 8, padding: 14, marginBottom: 20 }}>
+        <div style={{ fontSize: 10, color: S.orange, fontWeight: 600, marginBottom: 6 }}>📥 Quick Start</div>
+        <div style={{ fontSize: 10, color: S.dim, lineHeight: 1.8 }}>
+          <b style={{ color: "#fff" }}>3D Models:</b> Install <a href="https://openscad.org/" target="_blank" rel="noopener noreferrer" style={{ color: S.accent }}>OpenSCAD</a> (free) → paste each .scad file → F6 to render → Export STL → slice and print<br/>
+          <b style={{ color: "#fff" }}>Software:</b> Copy .py files to Pi → pip install -r requirements.txt → python3 sorter_main.py --test<br/>
+          <b style={{ color: "#fff" }}>Database:</b> Create Supabase project → paste schema.sql in SQL editor → run
+        </div>
+      </div>
+
+      {FILE_SECTIONS.map((section, si) => (
+        <div key={si} style={{ marginBottom: 24 }}>
+          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 14, fontWeight: 600, color: "#fff", marginBottom: 4 }}>{section.cat}</div>
+          <div style={{ fontSize: 10, color: S.dim, marginBottom: 10 }}>{section.desc}</div>
+
+          {section.files.map((file, fi) => {
+            const key = `${si}-${fi}`;
+            const isOpen = expanded.has(key);
+            const isCopied = copied === key;
+            return (
+              <div key={fi} style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, marginBottom: 6, overflow: "hidden" }}>
+                <div onClick={() => toggleFile(key)} style={{ padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
+                  <div>
+                    <span style={{ fontSize: 12, color: S.green, fontWeight: 600, fontFamily: "'JetBrains Mono',monospace" }}>{file.name}</span>
+                    <span style={{ fontSize: 10, color: S.dim, marginLeft: 10 }}>{file.desc}</span>
+                  </div>
+                  <span style={{ fontSize: 10, color: S.dark }}>{isOpen ? "▼" : "▶"}</span>
+                </div>
+                {isOpen && (
+                  <div style={{ borderTop: `1px solid ${S.border}` }}>
+                    <div style={{ display: "flex", justifyContent: "flex-end", padding: "6px 14px 0" }}>
+                      <button onClick={(e) => { e.stopPropagation(); copyCode(file.code, key); }} style={{
+                        background: isCopied ? S.green + "22" : S.bg,
+                        border: `1px solid ${isCopied ? S.green : S.border}`,
+                        color: isCopied ? S.green : S.dim,
+                        padding: "4px 12px", borderRadius: 4, fontSize: 10, cursor: "pointer", fontFamily: "inherit",
+                      }}>
+                        {isCopied ? "✓ Copied!" : "Copy to clipboard"}
+                      </button>
+                    </div>
+                    <pre style={{
+                      padding: "10px 14px 14px", margin: 0, fontSize: 9.5, lineHeight: 1.5,
+                      color: S.green, background: "transparent", overflowX: "auto",
+                      whiteSpace: "pre-wrap", fontFamily: "'JetBrains Mono',monospace",
+                      maxHeight: 400, overflowY: "auto",
+                    }}>{file.code}</pre>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+
+      <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: 14, marginTop: 16 }}>
+        <div style={{ fontSize: 10, color: S.dim, lineHeight: 1.7 }}>
+          <b style={{ color: S.accent }}>Note:</b> Additional parts (04_camera_mount, 05_release_gate, 08_motor_mount) follow the same pattern.
+          The full set of 10 .scad files are in the downloadable ZIP from the chat. These are the critical files you need to get started — the turntable, bins, hopper, slide, and feed roller.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// SHARED COMPONENTS
+// ============================================================
+function H2({ children, style }) { return <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 16, fontWeight: 600, color: "#fff", marginTop: 20, marginBottom: 10, ...style }}>{children}</div>; }
+function H3({ children }) { return <div style={{ fontSize: 10, letterSpacing: 2, color: S.accent, textTransform: "uppercase", fontWeight: 600, marginTop: 16, marginBottom: 8 }}>{children}</div>; }
+function P({ children }) { return <div style={{ fontSize: 11, color: S.dim, lineHeight: 1.7, marginBottom: 8 }}>{children}</div>; }
+function Code({ children }) { return <pre style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: 14, fontSize: 10, color: S.green, lineHeight: 1.6, overflowX: "auto", whiteSpace: "pre-wrap", margin: "8px 0 16px", fontFamily: "'JetBrains Mono',monospace" }}>{children}</pre>; }
+function Stat({ label, value, sub }) { return <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: "10px 14px" }}><div style={{ fontSize: 8, color: S.dim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 2 }}>{label}</div><div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 20, fontWeight: 700, color: "#fff" }}>{value}</div>{sub && <div style={{ fontSize: 9, color: S.dim, marginTop: 1 }}>{sub}</div>}</div>; }
