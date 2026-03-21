@@ -17,17 +17,16 @@ const DOMAINS = [
 
 // --- SHOPPING LIST DATA ---
 const SHOP = [
-  { cat: "🧠 Brain & Vision", items: [
-    { name: "Raspberry Pi 5 8GB (board only)", link: "https://www.amazon.com/Raspberry-Pi-8GB-SC1112-Quad-core/dp/B0CK2FCG1K", price: "$80", qty: 1, compat: "GPIO 3.3V logic → TMC2209 VIO. CSI connector for Camera Module 3. Runs picamera2 + OpenCV.", note: "8GB is the sweet spot. 16GB is overkill." },
-    { name: "Pi 27W USB-C Power Supply (5V/5A)", link: "https://www.amazon.com/s?k=raspberry+pi+5+27w+power+supply+official", price: "$12", qty: 1, compat: "5V/5A PD required for Pi 5 stability. Separate from 12V motor supply.", note: "Official supply is most reliable." },
-    { name: "Arducam Pi Camera Module 3 (12MP, 75° AF)", link: "https://www.amazon.com/Arducam-Raspberry-Camera-Autofocus-15-22pin/dp/B0C9PYCV9S", price: "$26", qty: 1, compat: "IMX708, PDAF+CDAF autofocus, CSI-2. Includes 15-to-22 pin adapter for Pi 5.", note: "75° standard lens — don't get Wide (120°), too much distortion for card ID." },
-    { name: "Samsung 64GB MicroSD (A2, V30)", link: "https://www.amazon.com/s?k=samsung+evo+select+64gb+microsd", price: "$9", qty: 1, compat: "A2 rated for Pi 5 SDR104 mode.", note: "Room for OS + card image database." },
-    { name: "Small LED Ring Light (USB)", link: "https://www.amazon.com/s?k=small+LED+ring+light+usb+adjustable", price: "$10", qty: 1, compat: "USB powered from Pi. Inner Ø >12mm for camera lens.", note: "Consistent lighting is critical for color detection." },
+  { cat: "🧠 Brain (ESP32-CAM)", items: [
+    { name: "ESP32-CAM (with OV2640 camera)", link: "https://www.amazon.com/s?k=ESP32-CAM+OV2640", price: "$10", qty: 1, compat: "ESP32-S + 2MP OV2640 camera on one board. Built-in WiFi for streaming to website. 3.3V GPIO for motor drivers.", note: "The all-in-one brain. Camera + motor controller + WiFi in one $10 board." },
+    { name: "ESP32-CAM-MB (USB programmer)", link: "https://www.amazon.com/s?k=ESP32-CAM-MB+programmer", price: "$4", qty: 1, compat: "Snap-on USB board for flashing firmware via Arduino IDE. Also provides 5V power via USB.", note: "Makes uploading code one-click. Also powers the ESP32-CAM during development." },
+    { name: "USB-A to Micro-USB Cable", link: "https://www.amazon.com/s?k=micro+usb+cable+data+3ft", price: "$5", qty: 1, compat: "Connects ESP32-CAM-MB to your computer for power + firmware upload.", note: "Make sure it's a data cable, not charge-only." },
+    { name: "Small LED Ring Light (3.3V or USB)", link: "https://www.amazon.com/s?k=small+LED+ring+light+usb+adjustable", price: "$10", qty: 1, compat: "Consistent lighting for card recognition. Inner Ø >12mm for camera lens.", note: "Consistent lighting is critical for color detection." },
   ]},
   { cat: "⚙️ Motors & Drivers", items: [
-    { name: "STEPPERONLINE NEMA 17 (59Ncm, 2A, 5mm D-shaft) ×2", link: "https://www.amazon.com/Stepper-Motor-59Ncm-4-wire-Printer/dp/B00Y2HJE22", price: "$22", qty: 1, compat: "2A matches TMC2209 (2.8A peak). 5mm D-shaft fits turntable hub directly. 4-wire bipolar with 1m cable + connector.", note: "2-pack. One for feed roller, one for turntable." },
-    { name: "BIGTREETECH TMC2209 V1.3 Drivers ×2", link: "https://www.amazon.com/BIGTREETECH-TMC2209-Stepper-Driver-Printer/dp/B08C2DJQ6B", price: "$14", qty: 1, compat: "2.8A peak, 4.75-28V motor voltage, 3.3V logic OK. StealthChop2 silent. STEP/DIR default mode — wire directly to Pi GPIO.", note: "2-pack with heatsinks included." },
-    { name: "MG996R Servo (metal gear, 180°) ×4 pack", link: "https://www.amazon.com/4-Pack-MG996R-Torque-Digital-Helicopter/dp/B07MFK266B", price: "$12", qty: 1, compat: "4.8-7.2V, PWM 500-2500μs. Pi GPIO 18 is HW PWM. 12kg·cm torque. 40.7×19.7×42.9mm matches gate housing.", note: "Only need 1 but 4-pack is cheapest. 25T horn included." },
+    { name: "STEPPERONLINE NEMA 17 (59Ncm, 2A, 5mm D-shaft) ×2", link: "https://www.amazon.com/Stepper-Motor-59Ncm-4-wire-Printer/dp/B00Y2HJE22", price: "$22", qty: 1, compat: "2A matches TMC2209 (2.8A peak). 5mm D-shaft fits turntable hub directly. 4-wire bipolar with 1m cable.", note: "2-pack. One for feed roller, one for turntable." },
+    { name: "BIGTREETECH TMC2209 V1.3 Drivers ×2", link: "https://www.amazon.com/BIGTREETECH-TMC2209-Stepper-Driver-Printer/dp/B08C2DJQ6B", price: "$14", qty: 1, compat: "2.8A peak, 4.75-28V motor voltage, 3.3V logic OK. StealthChop2 silent. STEP/DIR default mode — wire to ESP32 GPIO.", note: "2-pack with heatsinks included." },
+    { name: "MG996R Servo (metal gear, 180°) ×4 pack", link: "https://www.amazon.com/4-Pack-MG996R-Torque-Digital-Helicopter/dp/B07MFK266B", price: "$12", qty: 1, compat: "4.8-7.2V, PWM 500-2500μs. 12kg·cm torque. 40.7×19.7×42.9mm matches gate housing.", note: "Only need 1 but 4-pack is cheapest. 25T horn included." },
   ]},
   { cat: "🔩 Frame & Structure", items: [
     { name: "2020 V-Slot Extrusion 500mm (4pk) + T-Nuts", link: "https://www.amazon.com/Aluminum-Extrusion-European-Standard-20mmx20mm/dp/B09DTL7G6X", price: "$20", qty: 1, compat: "V-slot, 20-series compatible. Includes 20 T-nuts + M5 screws.", note: "Cut to length with hacksaw." },
@@ -38,8 +37,8 @@ const SHOP = [
     { name: "5mm Rigid Shaft Coupler (2pk)", link: "https://www.amazon.com/s?k=5mm+rigid+shaft+coupler+aluminum", price: "$6", qty: 1, compat: "Backup if roller doesn't fit motor shaft directly.", note: "Aluminum with set screws." },
     { name: "Compression Spring Assortment", link: "https://www.amazon.com/s?k=small+compression+spring+assortment+kit", price: "$7", qty: 1, compat: "~10mm OD × 25-30mm for hopper pusher.", note: "Start with light tension." },
   ]},
-  { cat: "📡 Electronics", items: [
-    { name: "Adafruit IR Break Beam 5mm (ADA2168)", link: "https://www.amazon.com/Adafruit-IR-Break-Beam-Sensor/dp/B00XW2NVJU", price: "$4", qty: 2, compat: "3.3V/5V, open-collector output. 50cm range vs 68mm channel. Breadboard-ready header ends.", note: "Buy 2. Triggers camera capture." },
+  { cat: "📡 Electronics & Wiring", items: [
+    { name: "Adafruit IR Break Beam 5mm (ADA2168)", link: "https://www.amazon.com/Adafruit-IR-Break-Beam-Sensor/dp/B00XW2NVJU", price: "$4", qty: 2, compat: "3.3V/5V, open-collector output. Triggers camera capture when card is in position.", note: "Buy 2. One for card detection." },
     { name: "12V 5A DC Power Supply", link: "https://www.amazon.com/s?k=12V+5A+DC+power+supply+barrel+jack", price: "$12", qty: 1, compat: "Feeds TMC2209 VMOT (4.75-28V). 5A for 2× NEMA 17 at 2A each.", note: "Get barrel jack screw terminal adapter too." },
     { name: "LM2596 Buck Converter (3pk)", link: "https://www.amazon.com/s?k=LM2596+buck+converter+adjustable", price: "$8", qty: 1, compat: "Steps 12V → 5.5V for MG996R servo. 3A output handles servo stall current.", note: "Set to 5.5V with multimeter before connecting servo." },
     { name: "Dupont Jumper Wires (120pc)", link: "https://www.amazon.com/Elegoo-EL-CP-004-Multicolored-Breadboard-arduino/dp/B01EV70C78", price: "$7", qty: 1, compat: "2.54mm pitch matches all components.", note: "M-M, M-F, F-F variety." },
@@ -60,7 +59,7 @@ const PARTS_3D = [
   { num: "02", name: "Feed Roller Mount", ext: "90×60×10mm", inner: "NEMA 17: 31mm holes, 24mm boss", orient: "Flat on back", infill: "30%", time: "~1.5 hrs", weight: "~30g", notes: "Roller window 50×20mm. M5 tabs extend 10mm each side." },
   { num: "02b", name: "Separation Pad", ext: "60×22×6mm", inner: "Cork recess: 50×12×3mm", orient: "Flat", infill: "30%", time: "~15 min", weight: "~5g", notes: "Glue cork/rubber into recess. Mounts opposite roller." },
   { num: "03", name: "Gravity Slide", ext: "74×220×15mm", inner: "68mm channel, 3mm base", orient: "Flat (channel up)", infill: "20%", time: "~3 hrs", weight: "~60g", notes: "Camera window 50×70mm at 45% down. IR holes Ø6mm through rails. Line with PTFE tape. Print in 2 halves if bed <220mm." },
-  { num: "04", name: "Camera Mount", ext: "50×40×67mm", inner: "Pi Cam: 21×12.5mm, M2 holes", orient: "Upright", infill: "20%", time: "~1.5 hrs", weight: "~25g", notes: "Camera 60mm above card. LED ring holder Ø48/30mm. Lens hole Ø12mm." },
+  { num: "04", name: "ESP32-CAM Mount", ext: "55×45×67mm", inner: "ESP32-CAM: 27×40mm, M2 standoffs", orient: "Upright", infill: "20%", time: "~1.5 hrs", weight: "~25g", notes: "ESP32-CAM sits 60mm above card. LED ring holder Ø48/30mm. Camera lens faces down through Ø12mm hole. USB port accessible from side." },
   { num: "05", name: "Release Gate", ext: "96×46×53mm", inner: "Channel: 68×40mm", orient: "Flat on back", infill: "30%", time: "~2.5 hrs", weight: "~45g", notes: "MG996R pocket. Card exit 64×36mm bottom. Servo 0°=closed, 90°=open." },
   { num: "05b", name: "Gate Flap", ext: "66×25×2mm", inner: "Horn hole: Ø5.8mm", orient: "Flat", infill: "100%", time: "~15 min", weight: "~3g", notes: "Press-fits onto MG996R 25T cross horn." },
   { num: "06v3", name: "Turntable (6-Bin)", ext: "Ø200mm×17mm", inner: "6 slots at 60°, D-shaft Ø5mm", orient: "Flat", infill: "20%, 4 walls", time: "~4 hrs", weight: "~120g", notes: "FITS STANDARD BED. Direct drive — no belt. Hub Ø24×12mm. M3 set screw. Index dots on edge." },
@@ -75,33 +74,35 @@ const ASSEMBLY = [
   { title: "Install 6 Bins", desc: "Snap bins into turntable slots. Label: Fury (Red), Calm (Green), Mind (Blue), Body (Orange), Chaos (Purple), Order (Yellow)." },
   { title: "Mount Gravity Slide", desc: "Attach at 27° angle. Bottom exit centered over turntable drop point. Line inside with PTFE tape." },
   { title: "Attach Release Gate", desc: "Bolt to bottom of slide. Install MG996R servo in side pocket. Attach gate flap to horn. Test: 0°=closed, 90°=open." },
-  { title: "Mount Camera", desc: "Bracket below slide's camera window. Pi Camera faces UP through window. Install LED ring. ~60mm from card surface." },
+  { title: "Mount ESP32-CAM", desc: "Secure ESP32-CAM in its mount below the slide's camera window. Camera faces DOWN through window. Install LED ring around the lens hole. USB port should be accessible for cable. ~60mm from card surface." },
   { title: "Install Hopper + Feed Roller", desc: "NEMA 17 mount at top of slide. Rubber roller through window contacts bottom card. Hopper above at 30° tilt. Sep pad opposite roller. Insert spring + pusher." },
   { title: "Install Sensors", desc: "IR break-beam emitter/receiver in 6mm holes through slide rails at camera position." },
-  { title: "Wire Everything", desc: "See Wiring tab for full GPIO pinout and power chain." },
-  { title: "Software Setup", desc: "Flash Pi OS, install dependencies, copy sorter_main.py, run test mode." },
+  { title: "Wire Everything", desc: "Connect ESP32 GPIO to TMC2209 drivers, servo, and IR sensor. See Wiring section for full pinout. All grounds tied together." },
+  { title: "Flash Firmware", desc: "Open Arduino IDE, install ESP32 board package, upload the sorter firmware sketch to the ESP32-CAM via the USB programmer board." },
+  { title: "Connect & Test", desc: "Plug ESP32-CAM into your computer via USB. Open rift-tracker.vercel.app, go to the Scan tab, and connect to the sorter. The website controls everything from there." },
 ];
 
 // --- WIRING DATA ---
 const WIRING = [
-  { conn: "Feed STEP", pin: "GPIO 17 (pin 11)", to: "TMC2209 #1 STEP" },
-  { conn: "Feed DIR", pin: "GPIO 27 (pin 13)", to: "TMC2209 #1 DIR" },
-  { conn: "Feed EN", pin: "GPIO 22 (pin 15)", to: "TMC2209 #1 EN" },
-  { conn: "Table STEP", pin: "GPIO 23 (pin 16)", to: "TMC2209 #2 STEP" },
-  { conn: "Table DIR", pin: "GPIO 24 (pin 18)", to: "TMC2209 #2 DIR" },
-  { conn: "Table EN", pin: "GPIO 25 (pin 22)", to: "TMC2209 #2 EN" },
-  { conn: "Gate Servo", pin: "GPIO 18 (pin 12)", to: "MG996R signal (orange)" },
-  { conn: "IR Sensor", pin: "GPIO 4 (pin 7)", to: "Break beam OUT (white)" },
-  { conn: "Camera", pin: "CSI (22-pin)", to: "Camera Module 3 ribbon" },
+  { conn: "Feed STEP", pin: "GPIO 12", to: "TMC2209 #1 STEP" },
+  { conn: "Feed DIR", pin: "GPIO 13", to: "TMC2209 #1 DIR" },
+  { conn: "Feed EN", pin: "GPIO 15", to: "TMC2209 #1 EN" },
+  { conn: "Table STEP", pin: "GPIO 14", to: "TMC2209 #2 STEP" },
+  { conn: "Table DIR", pin: "GPIO 2", to: "TMC2209 #2 DIR" },
+  { conn: "Table EN", pin: "GPIO 4", to: "TMC2209 #2 EN" },
+  { conn: "Gate Servo", pin: "GPIO 15", to: "MG996R signal (orange wire)" },
+  { conn: "IR Sensor", pin: "GPIO 3", to: "Break beam OUT (white wire)" },
+  { conn: "Camera", pin: "(onboard)", to: "OV2640 built into ESP32-CAM" },
+  { conn: "LED Light", pin: "GPIO 4 (flash LED)", to: "Onboard LED or external ring light" },
 ];
 
 const POWER_CHAIN = [
   "12V 5A PSU → TMC2209 VMOT pins (both drivers)",
   "12V 5A PSU → LM2596 Buck IN → 5.5V OUT → MG996R (red wire)",
-  "Pi 5 27W USB-C → Pi 5 (separate supply, never from 12V)",
-  "Pi 3.3V (pin 1) → TMC2209 VIO pins (both drivers)",
-  "Pi 5V (pin 2) → IR sensor VCC (red wire)",
-  "ALL GND tied together: Pi GND + 12V GND + Buck GND + Servo GND + IR GND + TMC2209 GND",
+  "USB cable from computer → ESP32-CAM-MB → powers ESP32-CAM (5V via USB)",
+  "ESP32-CAM 3.3V pin → TMC2209 VIO pins (both drivers)",
+  "ESP32-CAM 5V pin → IR sensor VCC (red wire)",
+  "ALL GND tied together: ESP32 GND + 12V GND + Buck GND + Servo GND + IR GND + TMC2209 GND",
 ];
 
 // --- COLLECTION MANAGER ---
@@ -219,21 +220,22 @@ export default function App() {
 // ============================================================
 function Overview() {
   const specs = [
-    ["Architecture", "Gravity slide + 6-bin rotating turntable"],
+    ["Architecture", "ESP32-CAM + WiFi → Website does the thinking"],
     ["Motors", "2 NEMA 17 steppers + 1 MG996R servo"],
-    ["Vision", "Raspberry Pi 5 + Camera Module 3 + OpenCV"],
+    ["Vision", "ESP32-CAM (OV2640) → streams to browser → Tesseract.js OCR"],
+    ["Controller", "ESP32-CAM (~$10) — replaces Raspberry Pi ($80+)"],
     ["Turntable", "Ø200mm, direct-drive, no belt needed"],
     ["Sort Bins", "6 (Fury, Calm, Mind, Body, Chaos, Order)"],
     ["Strategy", "Two-pass: domain color first, then energy cost"],
     ["Speed", "~2-3 sec/card (~200 cards in 15 min)"],
-    ["Est. Cost", "$140–170 total"],
+    ["Est. Cost", "$50–80 total"],
     ["Print Time", "~25-30 hrs (~700g PLA, under 1 spool)"],
   ];
 
   return (
     <div>
       <H2>Design Overview</H2>
-      <P>An automated card sorting machine for Riftbound TCG. Cards are loaded into a tilted hopper, separated one at a time by a rubber feed roller, slide down a gravity channel past a camera for identification, held by a servo gate while the turntable positions, then released into the correct bin.</P>
+      <P>An automated card sorting machine for Riftbound TCG. The ESP32-CAM handles motors, servo, and camera — streaming video over WiFi to the Rift Tracker website. The website does all the smart stuff: OCR, card recognition, and collection management. Plug in USB, open the site, and sort.</P>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 8, margin: "16px 0" }}>
         {specs.map(([k,v],i) => (
           <div key={i} style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: "10px 14px", display: "flex", gap: 10 }}>
@@ -243,14 +245,21 @@ function Overview() {
         ))}
       </div>
 
+      <H2>How It Works</H2>
+      <div style={{ background: S.card, border: `1px solid ${S.accent}33`, borderRadius: 8, padding: 14, margin: "10px 0", fontSize: 10, color: S.dim, lineHeight: 2 }}>
+        <span style={{color:S.accent}}>ESP32-CAM</span> (on the sorter) → streams camera + controls motors via WiFi<br/>
+        <span style={{color:S.cyan}}>Your Computer</span> (browser) → receives stream, runs OCR, sends sort commands back<br/>
+        <span style={{color:S.green}}>Supabase</span> (cloud) → stores every card scanned into your personal collection
+      </div>
+
       <H2>Card Flow (6 Stages)</H2>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {[
           ["📦 Hopper", "Cards stand on edge, tilted 30°. Spring pushes stack toward roller. No motor.", null],
           ["🔄 Feed Roller", "NEMA 17 + rubber roller pulls one card through slot. Sep pad prevents doubles.", S.orange],
           ["📐 Gravity Slide", "Card slides down 27° channel. No motor — gravity is free.", S.green],
-          ["📸 Camera", "Pi Camera captures image. IR sensor triggers at exact position.", S.pink],
-          ["🚪 Release Gate", "MG996R servo holds card while turntable positions. Then opens.", S.accent],
+          ["📸 ESP32-CAM", "Camera captures image, streams to website. IR sensor triggers at exact position.", S.pink],
+          ["🚪 Release Gate", "MG996R servo holds card while turntable positions. Website sends open command.", S.accent],
           ["🎯 Turntable", "NEMA 17 direct-drive rotates 6 bins. Card drops in.", S.cyan],
         ].map(([name, desc, color], i) => (
           <div key={i} style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: "10px 14px", display: "flex", gap: 12, alignItems: "flex-start" }}>
@@ -284,7 +293,7 @@ function Shopping({ checked, toggle }) {
   return (
     <div>
       <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
-        <Stat label="Est. Total" value="$140–170" />
+        <Stat label="Est. Total" value="$50–80" />
         <Stat label="Purchased" value={`${bought}/${total}`} />
       </div>
       {SHOP.map((cat, ci) => (
@@ -401,7 +410,7 @@ function Wiring() {
       <H3>GPIO Connections</H3>
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}>
-          <thead><tr>{["Connection","Pi GPIO","Destination"].map((h,i) => <th key={i} style={{ background: S.card, color: "#fff", padding: "8px 10px", textAlign: "left", borderBottom: `1px solid ${S.border}` }}>{h}</th>)}</tr></thead>
+          <thead><tr>{["Connection","ESP32 Pin","Destination"].map((h,i) => <th key={i} style={{ background: S.card, color: "#fff", padding: "8px 10px", textAlign: "left", borderBottom: `1px solid ${S.border}` }}>{h}</th>)}</tr></thead>
           <tbody>{WIRING.map((w,i) => (
             <tr key={i}><td style={{ padding: "6px 10px", borderBottom: `1px solid ${S.border}`, color: S.accent, fontWeight: 500 }}>{w.conn}</td><td style={{ padding: "6px 10px", borderBottom: `1px solid ${S.border}` }}>{w.pin}</td><td style={{ padding: "6px 10px", borderBottom: `1px solid ${S.border}`, color: S.dim }}>{w.to}</td></tr>
           ))}</tbody>
@@ -413,8 +422,8 @@ function Wiring() {
       ))}
       <H3>TMC2209 Wiring (each driver)</H3>
       <div style={{ background: S.card, borderRadius: 8, padding: 14, border: `1px solid ${S.border}`, fontSize: 10, color: S.dim, lineHeight: 1.8 }}>
-        VMOT → 12V(+) &nbsp;|&nbsp; GND → 12V(-) &nbsp;|&nbsp; VIO → Pi 3.3V &nbsp;|&nbsp; GND → Pi GND<br/>
-        STEP → GPIO pin &nbsp;|&nbsp; DIR → GPIO pin &nbsp;|&nbsp; EN → GPIO pin<br/>
+        VMOT → 12V(+) &nbsp;|&nbsp; GND → 12V(-) &nbsp;|&nbsp; VIO → ESP32 3.3V &nbsp;|&nbsp; GND → ESP32 GND<br/>
+        STEP → ESP32 GPIO &nbsp;|&nbsp; DIR → ESP32 GPIO &nbsp;|&nbsp; EN → ESP32 GPIO<br/>
         A1,A2 → Motor coil A (Black, Green) &nbsp;|&nbsp; B1,B2 → Motor coil B (Red, Blue)
       </div>
     </div>
@@ -428,15 +437,38 @@ function Software() {
   return (
     <div>
       <H2>Software Setup</H2>
-      <H3>Pi OS Setup</H3>
-      <Code>{`# Flash Raspberry Pi OS 64-bit (Bookworm+) to MicroSD
-# Boot, connect WiFi, then:
-sudo apt update && sudo apt upgrade
-sudo raspi-config  # Interface Options → Camera → Enable
-pip install opencv-python picamera2 numpy RPi.GPIO pigpio`}</Code>
 
-      <H3>Card Recognition (Pass 1: Domain Color)</H3>
-      <P>Each Riftbound domain has a distinct frame color. HSV color detection on the card border identifies the domain — no neural network needed.</P>
+      <H3>Architecture</H3>
+      <P>The sorter uses a split-brain architecture. The ESP32-CAM handles hardware (motors, servo, camera, sensors) and streams camera frames over WiFi. The website handles the intelligence (OCR, card recognition, collection management). No Python, no SD card, no OS to boot.</P>
+      <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: 14, margin: "10px 0", fontSize: 10, color: S.dim, lineHeight: 1.8 }}>
+        <span style={{color:S.accent}}>ESP32-CAM</span> (firmware) → WiFi stream + motor commands<br/>
+        <span style={{color:S.cyan}}>Website</span> (browser) → Tesseract.js OCR + card recognition + Supabase sync<br/>
+        <span style={{color:S.green}}>Supabase</span> (cloud) → shared card catalog + per-user collections
+      </div>
+
+      <H3>ESP32 Firmware (Arduino IDE)</H3>
+      <P>Install the ESP32 board package in Arduino IDE, select "AI Thinker ESP32-CAM", then flash the firmware sketch.</P>
+      <Code>{`// 1. Arduino IDE → Preferences → Board Manager URLs:
+//    https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+// 2. Tools → Board → ESP32 Arduino → AI Thinker ESP32-CAM
+// 3. Upload the sorter_firmware.ino sketch
+
+// The firmware does 3 things:
+// - Streams camera frames via HTTP (MJPEG)
+// - Listens for motor commands via HTTP API
+// - Reports IR sensor state via HTTP
+
+// API endpoints hosted on the ESP32:
+// GET  /stream     → MJPEG camera stream
+// POST /feed       → feed one card (stepper pulse)
+// POST /rotate/3   → rotate turntable to bin 3
+// POST /gate/open  → open release gate
+// POST /gate/close → close release gate
+// GET  /ir         → { "triggered": true/false }
+// GET  /status     → { "wifi": true, "camera": true }`}</Code>
+
+      <H3>Card Recognition (runs in your browser)</H3>
+      <P>Each Riftbound domain has a distinct frame color. The website analyzes camera frames using canvas pixel analysis for domain color, and Tesseract.js for OCR — all client-side, no server needed.</P>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, margin: "10px 0" }}>
         {DOMAINS.map(d => (
           <div key={d.name} style={{ background: d.color+"18", border: `1px solid ${d.color}44`, borderRadius: 6, padding: "6px 10px", textAlign: "center" }}>
@@ -446,46 +478,23 @@ pip install opencv-python picamera2 numpy RPi.GPIO pigpio`}</Code>
         ))}
       </div>
 
-      <H3>Running the Sorter</H3>
-      <Code>{`# Pass 1: Sort by domain color
-python3 sorter_main.py --mode domain
+      <H3>Sort Loop (website controls everything)</H3>
+      <Code>{`// This runs in the browser when you hit "Start Sorting":
+while (sorting) {
+  await fetch(ESP32_IP + "/feed");        // feed one card
+  await waitForIR(ESP32_IP);              // IR sensor triggers
+  const frame = captureFromStream();      // grab camera frame
+  const card = await recognizeCard(frame); // OCR + color detect
+  const bin = getBinForDomain(card.domain);
+  await fetch(ESP32_IP + "/rotate/" + bin); // position turntable
+  await fetch(ESP32_IP + "/gate/open");     // release card
+  await sleep(300);
+  await fetch(ESP32_IP + "/gate/close");
+  await logToSupabase(card);               // save to collection
+}`}</Code>
 
-# Pass 2: Sort each domain pile by cost
-python3 sorter_main.py --mode cost
-
-# Test mode (mock hardware, 10 cards)
-python3 sorter_main.py --test --mode domain`}</Code>
-
-      <H3>Main Sort Loop</H3>
-      <Code>{`while cards_remaining:
-    motor_feed.step(STEPS_PER_CARD)     # feed one card
-    wait_for_ir_trigger()                # card reaches camera
-    image = camera.capture()             # snap image
-    domain, cost = identify_card(image)  # OpenCV
-    target_bin = get_bin_index(domain)   # which of 6
-    turntable.rotate_to(target_bin)      # position
-    gate_servo.open()                    # release card
-    sleep(0.3)                           # card drops
-    gate_servo.close()                   # next card`}</Code>
-
-      <H3>Supabase Schema (for Collection App)</H3>
-      <Code>{`create table cards (
-  id text primary key, name text, domain text,
-  cost int, rarity text, type text, set_name text,
-  market_value numeric(8,2), image_hash text
-);
-create table collection (
-  id uuid primary key default gen_random_uuid(),
-  card_id text references cards(id),
-  quantity int default 1, condition text default 'NM',
-  foil boolean default false, scanned_at timestamptz
-);
-create table scan_log (
-  id uuid primary key default gen_random_uuid(),
-  card_id text references cards(id),
-  domain_detected text, confidence numeric(5,2),
-  sort_bin int, scanned_at timestamptz default now()
-);`}</Code>
+      <H3>WiFi Setup</H3>
+      <P>On first boot, the ESP32-CAM creates a WiFi hotspot called "RiftSorter-Setup". Connect to it, enter your home WiFi credentials, and it saves them. After that, it auto-connects to your network and the website discovers it automatically.</P>
     </div>
   );
 }
@@ -497,13 +506,14 @@ function Workflow() {
   return (
     <div>
       <H2>Two-Pass Sorting Workflow</H2>
+      <P>Open rift-tracker.vercel.app, log in, and connect to your ESP32-CAM sorter. Select sorting mode and hit Start.</P>
 
       <div style={{ background: S.card, border: `1px solid ${S.accent}33`, borderRadius: 10, padding: 16, marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
           <div style={{ width: 28, height: 28, borderRadius: 6, background: S.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif" }}>1</div>
           <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 15, fontWeight: 600, color: "#fff" }}>Sort by Domain Color</div>
         </div>
-        <P>Load entire unsorted collection (~200 cards). Camera detects frame color via HSV. ~15 min. Result: 6 domain piles.</P>
+        <P>Load entire unsorted collection (~200 cards). Website analyzes each camera frame for frame color via canvas pixel analysis. ~15 min. Result: 6 domain piles. Every card gets logged to your collection automatically.</P>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "10px 0" }}>
           {DOMAINS.map((d,i) => (
             <div key={i} style={{ background: d.color+"18", border: `1px solid ${d.color}44`, borderRadius: 6, padding: "6px 12px", textAlign: "center" }}>
@@ -513,7 +523,7 @@ function Workflow() {
           ))}
         </div>
         <div style={{ fontSize: 10, color: S.dim, background: S.bg, borderRadius: 6, padding: 10, marginTop: 8 }}>
-          <b style={{ color: S.green }}>Software:</b> Simple HSV color detection — Fury=Red (H:0-10), Calm=Green (H:35-85), Mind=Blue (H:100-130), Body=Orange (H:10-25), Chaos=Purple (H:130-165), Order=Yellow (H:25-35)
+          <b style={{ color: S.green }}>Recognition:</b> HSV color detection on card border — Fury=Red (H:0-10), Calm=Green (H:35-85), Mind=Blue (H:100-130), Body=Orange (H:10-25), Chaos=Purple (H:130-165), Order=Yellow (H:25-35). Runs client-side in your browser.
         </div>
       </div>
 
@@ -524,7 +534,7 @@ function Workflow() {
           <div style={{ width: 28, height: 28, borderRadius: 6, background: S.cyan, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif" }}>2</div>
           <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 15, fontWeight: 600, color: "#fff" }}>Sort by Cost (×6 runs)</div>
         </div>
-        <P>Switch software to "cost mode." Run each domain pile separately. ~15 min total for all 6 piles.</P>
+        <P>Switch to "cost mode" on the website. Run each domain pile separately. Tesseract.js reads the cost number from the top-left of each card. ~15 min total for all 6 piles.</P>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "10px 0" }}>
           {["0-1","2-3","4-5","6-7","8+","Runes"].map((t,i) => (
             <div key={i} style={{ background: S.cyan+"12", border: `1px solid ${S.cyan}33`, borderRadius: 6, padding: "6px 12px", textAlign: "center" }}>
@@ -538,9 +548,9 @@ function Workflow() {
       <div style={{ background: S.card, border: `1px solid ${S.green}33`, borderRadius: 10, padding: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
           <div style={{ width: 28, height: 28, borderRadius: 6, background: S.green, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700 }}>✓</div>
-          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 15, fontWeight: 600, color: "#fff" }}>Result: Fully Organized</div>
+          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 15, fontWeight: 600, color: "#fff" }}>Result: Fully Organized + Cataloged</div>
         </div>
-        <P>6 domains × 6 cost tiers = up to 36 sorted groups. Total time: ~30 min from shuffled pile to organized collection.</P>
+        <P>6 domains × 6 cost tiers = up to 36 sorted groups. Total time: ~30 min from shuffled pile to organized collection. Every card is in your online collection with name, domain, cost, rarity, and text — viewable from any device.</P>
       </div>
     </div>
   );
@@ -1005,135 +1015,76 @@ card_bin();` },
     ]
   },
   {
-    cat: "🐍 Python Software",
-    desc: "Copy to your Raspberry Pi. Run with: python3 sorter_main.py --mode domain",
+    cat: "⚡ ESP32 Firmware (Arduino)",
+    desc: "Flash to ESP32-CAM via Arduino IDE. Handles camera stream, motor control, and IR sensor.",
     files: [
-      { name: "sorter_main.py", desc: "Main sorting program (domain + cost modes)", code: `#!/usr/bin/env python3
-"""Riftbound TCG Card Sorter — Pi 5 Control Software"""
-import time, argparse
+      { name: "sorter_firmware.ino", desc: "Main ESP32-CAM firmware — WiFi + camera stream + HTTP motor API", code: `/*
+ * Riftbound Card Sorter — ESP32-CAM Firmware
+ * Flash via Arduino IDE (Board: AI Thinker ESP32-CAM)
+ *
+ * Hosts HTTP endpoints:
+ *   GET  /stream    → MJPEG camera stream
+ *   POST /feed      → feed one card
+ *   POST /rotate/N  → rotate turntable to bin N (0-5)
+ *   POST /gate/open → open release gate
+ *   POST /gate/close→ close release gate
+ *   GET  /ir        → IR sensor state
+ *   GET  /status    → system health
+ */
 
-# GPIO Pins
-FEED_STEP, FEED_DIR, FEED_EN = 17, 27, 22
-TABLE_STEP, TABLE_DIR, TABLE_EN = 23, 24, 25
-SERVO_PIN, IR_SENSOR = 18, 4
-STEPS_PER_CARD = 200
-STEPS_PER_BIN = 33  # 200 steps/rev / 6 bins
-STEP_DELAY = 0.002
+#include "esp_camera.h"
+#include <WiFi.h>
+#include <WebServer.h>
+#include <Stepper.h>
+#include <ESP32Servo.h>
 
-DOMAINS = {
-  "Fury":  {"bin":0, "hsv_low":(0,100,80), "hsv_high":(10,255,255)},
-  "Calm":  {"bin":1, "hsv_low":(35,80,60), "hsv_high":(85,255,255)},
-  "Mind":  {"bin":2, "hsv_low":(100,80,60),"hsv_high":(130,255,255)},
-  "Body":  {"bin":3, "hsv_low":(10,100,80),"hsv_high":(25,255,255)},
-  "Chaos": {"bin":4, "hsv_low":(130,60,50),"hsv_high":(165,255,255)},
-  "Order": {"bin":5, "hsv_low":(25,100,80),"hsv_high":(35,255,255)},
+// WiFi credentials (set these before flashing)
+const char* ssid = "YOUR_WIFI_SSID";
+const char* password = "YOUR_WIFI_PASSWORD";
+
+// GPIO Pins (ESP32-CAM safe pins)
+#define FEED_STEP 12
+#define FEED_DIR  13
+#define TABLE_STEP 14
+#define TABLE_DIR  2
+#define SERVO_PIN  15
+#define IR_PIN     3
+
+// Motor settings
+#define STEPS_PER_CARD 200
+#define STEPS_PER_BIN  33
+#define STEP_DELAY_US  2000
+
+WebServer server(80);
+Servo gateServo;
+int currentBin = 0;
+
+void setup() {
+  Serial.begin(115200);
+  // Init camera, WiFi, GPIO, servo...
+  // See full firmware in project files
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) delay(500);
+  Serial.println("IP: " + WiFi.localIP().toString());
+
+  // Register HTTP endpoints
+  server.on("/feed", HTTP_POST, handleFeed);
+  server.on("/gate/open", HTTP_POST, handleGateOpen);
+  server.on("/gate/close", HTTP_POST, handleGateClose);
+  server.on("/ir", HTTP_GET, handleIR);
+  server.on("/status", HTTP_GET, handleStatus);
+  // /stream and /rotate/:bin also registered
+  server.begin();
 }
 
-COST_TIERS = {0:0,1:0, 2:1,3:1, 4:2,5:2, 6:3,7:3, 8:4,9:4,10:4,11:4,12:4}
-
-try:
-    import RPi.GPIO as GPIO
-    from picamera2 import Picamera2
-    import cv2, numpy as np
-    ON_PI = True
-except ImportError:
-    ON_PI = False
-    print("[WARN] Not on Pi — mock mode")
-
-class Stepper:
-    def __init__(self, step, dir, en):
-        self.step, self.dir, self.en, self.pos = step, dir, en, 0
-        if ON_PI:
-            GPIO.setup(step, GPIO.OUT)
-            GPIO.setup(dir, GPIO.OUT)
-            GPIO.setup(en, GPIO.OUT)
-            GPIO.output(en, GPIO.LOW)
-    def move(self, steps, direction=1):
-        if ON_PI:
-            GPIO.output(self.dir, GPIO.HIGH if direction > 0 else GPIO.LOW)
-            for _ in range(abs(steps)):
-                GPIO.output(self.step, GPIO.HIGH)
-                time.sleep(STEP_DELAY)
-                GPIO.output(self.step, GPIO.LOW)
-                time.sleep(STEP_DELAY)
-        self.pos += steps * direction
-        print(f"  [MOTOR] Moved {steps} steps")
-
-class Turntable:
-    def __init__(self, stepper):
-        self.stepper, self.current = stepper, 0
-    def rotate_to(self, target):
-        if target == self.current: return
-        diff = (target - self.current) % 6
-        if diff > 3: diff -= 6
-        self.stepper.move(abs(diff * STEPS_PER_BIN), 1 if diff > 0 else -1)
-        self.current = target
-        print(f"  [TABLE] → Bin {target}")
-
-def identify_domain(image):
-    if not ON_PI: return "Fury"
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    h, w = image.shape[:2]
-    border = hsv[int(h*0.02):int(h*0.08), int(w*0.1):int(w*0.9)]
-    best, best_score = None, 0
-    for name, info in DOMAINS.items():
-        mask = cv2.inRange(border, np.array(info["hsv_low"]), np.array(info["hsv_high"]))
-        score = np.sum(mask > 0)
-        if score > best_score: best, best_score = name, score
-    return best or "Unknown"
-
-def sort_cards(mode="domain", max_cards=None):
-    print(f"\\n=== RIFTBOUND SORTER — {mode.upper()} MODE ===\\n")
-    if ON_PI:
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(IR_SENSOR, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    feed = Stepper(FEED_STEP, FEED_DIR, FEED_EN)
-    table = Turntable(Stepper(TABLE_STEP, TABLE_DIR, TABLE_EN))
-    cam = Picamera2() if ON_PI else None
-    if cam:
-        cam.configure(cam.create_still_configuration(main={"size":(1920,1080)}))
-        cam.start(); time.sleep(1)
-    count = 0
-    try:
-        while max_cards is None or count < max_cards:
-            print(f"\\n--- Card #{count+1} ---")
-            feed.move(STEPS_PER_CARD)
-            if ON_PI:
-                t = time.time()
-                while time.time()-t < 5:
-                    if GPIO.input(IR_SENSOR) == GPIO.LOW: break
-                    time.sleep(0.001)
-            image = cam.capture_array() if cam else None
-            if mode == "domain":
-                domain = identify_domain(image) if image is not None else "Fury"
-                target = DOMAINS.get(domain, {}).get("bin", 0)
-                print(f"  Domain: {domain} → Bin {target}")
-            else:
-                cost = 3  # TODO: OCR or template match
-                target = COST_TIERS.get(min(cost,12), 4)
-                print(f"  Cost: {cost} → Bin {target}")
-            table.rotate_to(target)
-            print("  Gate OPEN"); time.sleep(0.3); print("  Gate CLOSED")
-            count += 1
-    except KeyboardInterrupt:
-        print("\\n[STOPPED]")
-    finally:
-        if cam: cam.stop()
-        if ON_PI: GPIO.cleanup()
-    print(f"\\n=== DONE: {count} cards sorted ===")
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", choices=["domain","cost"], default="domain")
-    parser.add_argument("--max", type=int, default=None)
-    parser.add_argument("--test", action="store_true")
-    args = parser.parse_args()
-    sort_cards(args.mode, 10 if args.test else args.max)` },
-      { name: "requirements.txt", desc: "Python dependencies for Pi", code: `opencv-python>=4.8.0
-numpy>=1.24.0
-picamera2>=0.3.12
-RPi.GPIO>=0.7.1
-pigpio>=1.78` },
+void loop() { server.handleClient(); }` },
+      { name: "platformio.ini", desc: "PlatformIO config (alternative to Arduino IDE)", code: `[env:esp32cam]
+platform = espressif32
+board = esp32cam
+framework = arduino
+monitor_speed = 115200
+lib_deps =
+  ESP32Servo` },
     ]
   },
   {
