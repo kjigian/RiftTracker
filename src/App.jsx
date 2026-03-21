@@ -106,11 +106,6 @@ const POWER_CHAIN = [
 
 // --- COLLECTION MANAGER ---
 const RARITIES = ["Common", "Uncommon", "Rare", "Epic", "Legendary"];
-function genCards() {
-  const names = ["Blazing Strike","Ember Fist","Inferno Rush","Flame Guard","Fury's Edge","Pyroclasm","Ash Walker","Burning Resolve","Firestorm","Rage Pulse","Tranquil Pool","Vine Shield","Nature's Gift","Calm Tide","Root Wall","Healing Rain","Bark Sentinel","Leaf Dancer","Serenity","Wild Growth","Arcane Bolt","Mind Trap","Psychic Wave","Brain Freeze","Thought Thief","Mental Block","Dream Weaver","Logic Chain","Mana Surge","Insight","Iron Will","Might Boost","Titan Slam","Body Guard","Stone Skin","Rune Forge","Earth Shaker","Bulk Up","Endure","Colossus","Void Rip","Shadow Step","Chaos Bolt","Dark Pact","Entropy","Madness","Rift Tear","Unstable Flux","Pandemonium","Hex Curse","Divine Shield","Light Blade","Order's Call","Holy Smite","Balance","Judgment","Sacred Oath","Law Bringer","Radiance","Purity","Jinx","Viktor","Lee Sin","Annie","Master Yi","Lux","Garen","Miss Fortune","Ahri","Sett"];
-  return names.map((n,i) => ({ id:`c${i}`, name:n, domain:DOMAINS[Math.floor(i/10)%6].name, cost:i>=60?Math.floor(Math.random()*5)+4:Math.floor(Math.random()*9), rarity:i>=60?"Legendary":RARITIES[Math.floor(Math.random()*4)], type:i>=60?"Champion":["Unit","Spell","Champion","Item"][Math.floor(Math.random()*4)], set:"Origins", value:i>=60?+(Math.random()*15+5).toFixed(2):+(Math.random()*3+0.1).toFixed(2) }));
-}
-const ALL_CARDS = genCards();
 
 // --- STORAGE (powered by Supabase + localStorage fallback) ---
 // See src/lib/supabase.js for implementation
@@ -143,7 +138,7 @@ export default function App() {
   const [liveCards, setLiveCards] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const cardList = (liveCards && liveCards.length > 0) ? liveCards : ALL_CARDS;
+  const cardList = liveCards || [];
 
   // Check auth state on mount
   useEffect(() => {
@@ -567,8 +562,8 @@ function Workflow() {
 // COLLECTION MANAGER
 // ============================================================
 function Collection({ coll, update, cards: CARDS }) {
-  // Use passed cards (from Supabase or fallback generated list)
-  const ALL = CARDS || ALL_CARDS;
+  // Only real cards from Supabase (scanned by the sorter)
+  const ALL = CARDS || [];
   const [sub, setSub] = useState("dash");
   const [search, setSearch] = useState("");
   const [domFilt, setDomFilt] = useState("All");
@@ -625,6 +620,13 @@ function Collection({ coll, update, cards: CARDS }) {
       </>}
 
       {(sub === "browse" || sub === "add") && <>
+        {ALL.length === 0 ? (
+          <div style={{ color: S.dark, fontSize: 12, padding: 40, textAlign: "center", lineHeight: 1.8 }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>🃏</div>
+            <div style={{ color: S.dim, fontWeight: 600, marginBottom: 4 }}>No cards scanned yet</div>
+            <div>Run the card sorter to scan your Riftbound cards.<br/>Each card will appear here automatically.</div>
+          </div>
+        ) : <>
         <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
           <input placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} style={{ background: S.card, border: `1px solid ${S.border}`, color: "#fff", padding: "6px 10px", borderRadius: 6, fontSize: 11, flex: "1 1 150px" }} />
           <select value={domFilt} onChange={e => setDomFilt(e.target.value)} style={{ background: S.card, border: `1px solid ${S.border}`, color: "#fff", padding: "6px 8px", borderRadius: 6, fontSize: 11 }}>
@@ -661,6 +663,7 @@ function Collection({ coll, update, cards: CARDS }) {
               </div>
             );
           })}
+        </>}
       </>}
     </div>
   );
