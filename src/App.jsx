@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { getAllCards, getCollection, updateCard, getShoppingChecked, toggleShopItem, getRecentScans, getScanStats } from "./lib/supabase";
+import { getAllCards, getCollection, updateCard, getShoppingChecked, toggleShopItem, getRecentScans, getUser, onAuthChange, signOut } from "./lib/supabase";
+import Auth from "./components/Auth";
 
 // ============================================================
 // RIFTBOUND CARD SORTER — COMPLETE PROJECT HUB
@@ -135,23 +136,38 @@ const pill = (active, color = S.accent) => ({
 // APP
 // ============================================================
 export default function App() {
+  const [user, setUser] = useState(undefined); // undefined=loading, null=logged out, object=logged in
   const [tab, setTab] = useState("overview");
   const [coll, setColl] = useState({});
   const [shopChecked, setShopChecked] = useState(new Set());
-  const [liveCards, setLiveCards] = useState(null); // cards from Supabase
+  const [liveCards, setLiveCards] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load cards from Supabase (fall back to generated list if empty/offline)
   const cardList = (liveCards && liveCards.length > 0) ? liveCards : ALL_CARDS;
 
+  // Check auth state on mount
   useEffect(() => {
+    getUser().then(u => setUser(u || null));
+    const { data: { subscription } } = onAuthChange(u => {
+      setUser(u || null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Load data once user is known
+  useEffect(() => {
+    if (user === undefined) return; // still checking auth
     Promise.all([getAllCards(), getCollection(), getShoppingChecked()]).then(([cards, c, s]) => {
       if (cards && cards.length > 0) setLiveCards(cards);
       if (c) setColl(c);
       if (s) setShopChecked(s);
       setLoading(false);
     });
-  }, []);
+  }, [user]);
+
+  // Show auth screen if not logged in
+  if (user === undefined) return <div style={{ background: S.bg, color: S.accent, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace" }}>Loading...</div>;
+  if (user === null) return <Auth onAuth={setUser} />;
 
   const updateColl = useCallback(async (id, qty) => {
     const next = { ...coll }; qty <= 0 ? delete next[id] : next[id] = qty;
@@ -190,7 +206,11 @@ export default function App() {
             <div style={{ fontSize: 9, letterSpacing: 4, color: S.accent, textTransform: "uppercase", fontWeight: 600 }}>Riftbound TCG</div>
             <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 17, fontWeight: 700, color: "#fff" }}>Card Sorter Project Hub</div>
           </div>
-          <div style={{ fontSize: 10, color: S.dim }}>{Object.values(coll).reduce((a,b)=>a+b,0)} cards collected</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ fontSize: 10, color: S.dim }}>{Object.values(coll).reduce((a,b)=>a+b,0)} cards</div>
+            <div style={{ fontSize: 9, color: S.accent }}>{user?.email?.split("@")[0]}</div>
+            <button onClick={async () => { await signOut(); setUser(null); setColl({}); }} style={{ background: "transparent", border: `1px solid ${S.border}`, color: S.dim, padding: "3px 8px", borderRadius: 4, fontSize: 9, cursor: "pointer", fontFamily: "inherit" }}>Sign Out</button>
+          </div>
         </div>
         <div style={{ display: "flex", gap: 4, overflowX: "auto", paddingBottom: 2 }}>
           {tabs.map(t => <button key={t.id} onClick={() => setTab(t.id)} style={pill(tab === t.id)}>{t.icon} {t.label}</button>)}
