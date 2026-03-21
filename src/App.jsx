@@ -132,7 +132,7 @@ const pill = (active, color = S.accent) => ({
 // ============================================================
 export default function App() {
   const [user, setUser] = useState(undefined); // undefined=loading, null=logged out, object=logged in
-  const [tab, setTab] = useState("overview");
+  const [tab, setTab] = useState("collection");
   const [coll, setColl] = useState({});
   const [shopChecked, setShopChecked] = useState(new Set());
   const [liveCards, setLiveCards] = useState(null);
@@ -178,15 +178,9 @@ export default function App() {
   if (user === null) return <Auth onAuth={setUser} />;
 
   const tabs = [
-    { id: "overview", label: "Overview", icon: "🏠" },
-    { id: "shop", label: "Shopping", icon: "🛒" },
-    { id: "parts", label: "3D Parts", icon: "🖨️" },
-    { id: "build", label: "Assembly", icon: "🔧" },
-    { id: "wiring", label: "Wiring", icon: "⚡" },
-    { id: "software", label: "Software", icon: "💻" },
-    { id: "workflow", label: "Sorting", icon: "🎯" },
     { id: "collection", label: "Collection", icon: "🃏" },
-    { id: "files", label: "Files", icon: "📁" },
+    { id: "scans", label: "Recent Scans", icon: "📸" },
+    { id: "build", label: "Build Guide", icon: "🔧" },
   ];
 
   if (loading) return <div style={{ background: S.bg, color: S.accent, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace" }}>Loading...</div>;
@@ -199,7 +193,7 @@ export default function App() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
           <div>
             <div style={{ fontSize: 9, letterSpacing: 4, color: S.accent, textTransform: "uppercase", fontWeight: 600 }}>Riftbound TCG</div>
-            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 17, fontWeight: 700, color: "#fff" }}>Card Sorter Project Hub</div>
+            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 17, fontWeight: 700, color: "#fff" }}>Rift Tracker</div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ fontSize: 10, color: S.dim }}>{Object.values(coll).reduce((a,b)=>a+b,0)} cards</div>
@@ -212,15 +206,9 @@ export default function App() {
         </div>
       </div>
       <div style={{ padding: "20px 16px", maxWidth: 860, margin: "0 auto" }}>
-        {tab === "overview" && <Overview />}
-        {tab === "shop" && <Shopping checked={shopChecked} toggle={toggleShop} />}
-        {tab === "parts" && <Parts3D />}
-        {tab === "build" && <Assembly />}
-        {tab === "wiring" && <Wiring />}
-        {tab === "software" && <Software />}
-        {tab === "workflow" && <Workflow />}
         {tab === "collection" && <Collection coll={coll} update={updateColl} cards={cardList} />}
-        {tab === "files" && <Files />}
+        {tab === "scans" && <RecentScans />}
+        {tab === "build" && <BuildGuide checked={shopChecked} toggle={toggleShop} />}
       </div>
     </div>
   );
@@ -554,6 +542,101 @@ function Workflow() {
         </div>
         <P>6 domains × 6 cost tiers = up to 36 sorted groups. Total time: ~30 min from shuffled pile to organized collection.</P>
       </div>
+    </div>
+  );
+}
+
+// ============================================================
+// BUILD GUIDE (bundles all build sections)
+// ============================================================
+function BuildGuide({ checked, toggle }) {
+  const [section, setSection] = useState("overview");
+  const sections = [
+    { id: "overview", label: "Overview", icon: "🏠" },
+    { id: "shop", label: "Shopping", icon: "🛒" },
+    { id: "parts", label: "3D Parts", icon: "🖨️" },
+    { id: "assembly", label: "Assembly", icon: "🔧" },
+    { id: "wiring", label: "Wiring", icon: "⚡" },
+    { id: "software", label: "Software", icon: "💻" },
+    { id: "workflow", label: "Sorting", icon: "🎯" },
+    { id: "files", label: "Files", icon: "📁" },
+  ];
+
+  return (
+    <div>
+      <H2>Build Guide</H2>
+      <P>Everything you need to build the Riftbound Card Sorter — from parts to assembly to software.</P>
+      <div style={{ display: "flex", gap: 4, overflowX: "auto", marginBottom: 16, paddingBottom: 4 }}>
+        {sections.map(s => (
+          <button key={s.id} onClick={() => setSection(s.id)} style={{
+            background: section === s.id ? S.accent + "22" : S.card,
+            border: `1px solid ${section === s.id ? S.accent : S.border}`,
+            color: section === s.id ? S.accent : S.dim,
+            padding: "6px 12px", borderRadius: 6, fontSize: 10, cursor: "pointer",
+            fontFamily: "inherit", whiteSpace: "nowrap", fontWeight: section === s.id ? 600 : 400,
+          }}>{s.icon} {s.label}</button>
+        ))}
+      </div>
+      {section === "overview" && <Overview />}
+      {section === "shop" && <Shopping checked={checked} toggle={toggle} />}
+      {section === "parts" && <Parts3D />}
+      {section === "assembly" && <Assembly />}
+      {section === "wiring" && <Wiring />}
+      {section === "software" && <Software />}
+      {section === "workflow" && <Workflow />}
+      {section === "files" && <Files />}
+    </div>
+  );
+}
+
+// ============================================================
+// RECENT SCANS
+// ============================================================
+function RecentScans() {
+  const [scans, setScans] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getRecentScans().then(data => {
+      setScans(data || []);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div style={{ color: S.dim, fontSize: 11, padding: 20, textAlign: "center" }}>Loading scans...</div>;
+
+  return (
+    <div>
+      <H2>Recent Scans</H2>
+      <P>Cards detected by the sorter — most recent first.</P>
+      {scans.length === 0 ? (
+        <div style={{ color: S.dark, fontSize: 12, padding: 40, textAlign: "center", lineHeight: 1.8 }}>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>📸</div>
+          <div style={{ color: S.dim, fontWeight: 600, marginBottom: 4 }}>No scans yet</div>
+          <div>When you run the card sorter, each scan will appear here in real time.</div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          {scans.map((s, i) => {
+            const d = DOMAINS.find(x => x.name === s.domain_detected);
+            return (
+              <div key={s.id || i} style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: d?.color || S.dim }} />
+                  <div>
+                    <div style={{ fontSize: 11, color: "#fff", fontWeight: 500 }}>{s.cards?.name || s.card_id || "Unknown"}</div>
+                    <div style={{ fontSize: 9, color: S.dim }}>
+                      {s.domain_detected} · Cost {s.cost_detected} · {s.is_new_card ? "✨ New card" : "Duplicate"}
+                      {s.confidence ? ` · ${(s.confidence * 100).toFixed(0)}% confidence` : ""}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ fontSize: 9, color: S.dark }}>{s.scanned_at ? new Date(s.scanned_at).toLocaleString() : ""}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
