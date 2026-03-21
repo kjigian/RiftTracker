@@ -165,10 +165,6 @@ export default function App() {
     });
   }, [user]);
 
-  // Show auth screen if not logged in
-  if (user === undefined) return <div style={{ background: S.bg, color: S.accent, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace" }}>Loading...</div>;
-  if (user === null) return <Auth onAuth={setUser} />;
-
   const updateColl = useCallback(async (id, qty) => {
     const next = { ...coll }; qty <= 0 ? delete next[id] : next[id] = qty;
     setColl(next); await updateCard(id, qty);
@@ -181,6 +177,10 @@ export default function App() {
       toggleShopItem(key, isChecked); return n;
     });
   }, []);
+
+  // Show auth screen if not logged in
+  if (user === undefined) return <div style={{ background: S.bg, color: S.accent, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace" }}>Loading...</div>;
+  if (user === null) return <Auth onAuth={setUser} />;
 
   const tabs = [
     { id: "overview", label: "Overview", icon: "🏠" },
