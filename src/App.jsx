@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { getCollection, updateCard, getShoppingChecked, toggleShopItem } from "./lib/supabase";
+import { getAllCards, getCollection, updateCard, getShoppingChecked, toggleShopItem, getRecentScans, getScanStats } from "./lib/supabase";
 
 // ============================================================
 // RIFTBOUND CARD SORTER — COMPLETE PROJECT HUB
@@ -138,10 +138,15 @@ export default function App() {
   const [tab, setTab] = useState("overview");
   const [coll, setColl] = useState({});
   const [shopChecked, setShopChecked] = useState(new Set());
+  const [liveCards, setLiveCards] = useState(null); // cards from Supabase
   const [loading, setLoading] = useState(true);
 
+  // Load cards from Supabase (fall back to generated list if empty/offline)
+  const cardList = (liveCards && liveCards.length > 0) ? liveCards : ALL_CARDS;
+
   useEffect(() => {
-    Promise.all([getCollection(), getShoppingChecked()]).then(([c, s]) => {
+    Promise.all([getAllCards(), getCollection(), getShoppingChecked()]).then(([cards, c, s]) => {
+      if (cards && cards.length > 0) setLiveCards(cards);
       if (c) setColl(c);
       if (s) setShopChecked(s);
       setLoading(false);
@@ -199,7 +204,7 @@ export default function App() {
         {tab === "wiring" && <Wiring />}
         {tab === "software" && <Software />}
         {tab === "workflow" && <Workflow />}
-        {tab === "collection" && <Collection coll={coll} update={updateColl} />}
+        {tab === "collection" && <Collection coll={coll} update={updateColl} cards={cardList} />}
         {tab === "files" && <Files />}
       </div>
     </div>
@@ -541,14 +546,16 @@ function Workflow() {
 // ============================================================
 // COLLECTION MANAGER
 // ============================================================
-function Collection({ coll, update }) {
+function Collection({ coll, update, cards: CARDS }) {
+  // Use passed cards (from Supabase or fallback generated list)
+  const ALL = CARDS || ALL_CARDS;
   const [sub, setSub] = useState("dash");
   const [search, setSearch] = useState("");
   const [domFilt, setDomFilt] = useState("All");
 
   const totalOwned = Object.values(coll).reduce((a,b) => a+b, 0);
   const uniqueOwned = Object.keys(coll).length;
-  const totalValue = Object.entries(coll).reduce((s,[id,q]) => { const c=ALL_CARDS.find(x=>x.id===id); return s+(c?c.value*q:0); }, 0);
+  const totalValue = Object.entries(coll).reduce((s,[id,q]) => { const c=ALL.find(x=>x.id===id); return s+(c?(c.market_value||c.value||0)*q:0); }, 0);
 
   return (
     <div>
@@ -561,13 +568,13 @@ function Collection({ coll, update }) {
       {sub === "dash" && <>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 8, marginBottom: 20 }}>
           <Stat label="Total Cards" value={totalOwned} sub={`${uniqueOwned} unique`} />
-          <Stat label="Completion" value={`${((uniqueOwned/ALL_CARDS.length)*100).toFixed(1)}%`} sub={`${uniqueOwned}/${ALL_CARDS.length}`} />
+          <Stat label="Completion" value={`${ALL.length > 0 ? ((uniqueOwned/ALL.length)*100).toFixed(1) : 0}%`} sub={`${uniqueOwned}/${ALL.length}`} />
           <Stat label="Value" value={`$${totalValue.toFixed(2)}`} sub="est. market" />
         </div>
         <H3>Domain Completion</H3>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(120px,1fr))", gap: 6, marginBottom: 16 }}>
           {DOMAINS.map(d => {
-            const dc = ALL_CARDS.filter(c=>c.domain===d.name);
+            const dc = ALL.filter(c=>c.domain===d.name);
             const owned = dc.filter(c=>coll[c.id]).length;
             const pct = dc.length > 0 ? (owned/dc.length*100).toFixed(0) : 0;
             return (
@@ -585,12 +592,12 @@ function Collection({ coll, update }) {
           })}
         </div>
         <H3>Most Valuable Owned</H3>
-        {ALL_CARDS.filter(c=>coll[c.id]).sort((a,b)=>b.value*coll[b.id]-a.value*coll[a.id]).slice(0,5).map(c => {
+        {ALL.filter(c=>coll[c.id]).sort((a,b)=>(b.market_value||b.value||0)*coll[b.id]-(a.market_value||a.value||0)*coll[a.id]).slice(0,5).map(c => {
           const d = DOMAINS.find(x=>x.name===c.domain);
           return (
             <div key={c.id} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${S.border}`, fontSize: 11 }}>
               <span><span style={{ color: d?.color }}>{d?.icon}</span> {c.name} <span style={{ color: S.dim, fontSize: 9 }}>×{coll[c.id]}</span></span>
-              <span style={{ color: S.green, fontWeight: 600 }}>${(c.value*coll[c.id]).toFixed(2)}</span>
+              <span style={{ color: S.green, fontWeight: 600 }}>${((c.market_value||c.value||0)*coll[c.id]).toFixed(2)}</span>
             </div>
           );
         })}
@@ -605,7 +612,7 @@ function Collection({ coll, update }) {
             {DOMAINS.map(d => <option key={d.name} value={d.name}>{d.icon} {d.name}</option>)}
           </select>
         </div>
-        {ALL_CARDS
+        {ALL
           .filter(c => {
             if (sub === "browse" && !coll[c.id]) return false;
             if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
@@ -623,7 +630,7 @@ function Collection({ coll, update }) {
                   <div style={{ width: 24, height: 24, borderRadius: 4, background: d?.color+"22", border: `1px solid ${d?.color}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: d?.color, flexShrink: 0 }}>{c.cost}</div>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 11, color: "#fff", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</div>
-                    <div style={{ fontSize: 8, color: S.dim }}><span style={{ color: d?.color }}>{c.domain}</span> · <span style={{ color: rc[c.rarity] }}>{c.rarity}</span> · {c.type} · ${c.value}</div>
+                    <div style={{ fontSize: 8, color: S.dim }}><span style={{ color: d?.color }}>{c.domain}</span> · <span style={{ color: rc[c.rarity] }}>{c.rarity}</span> · {c.card_type||c.type} · ${c.market_value||c.value||0}</div>
                   </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
