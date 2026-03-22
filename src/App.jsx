@@ -68,19 +68,7 @@ const PARTS_3D = [
 ];
 
 // --- ASSEMBLY STEPS ---
-const ASSEMBLY = [
-  { title: "Build Frame", desc: "Cut 2020 extrusion: 4× 300mm verticals, 2× 350mm base, 2× 200mm cross-braces. Assemble with corner brackets into angled frame supporting the slide at 27°." },
-  { title: "Mount Turntable", desc: "Bolt motor mount to frame base with M5 T-nuts. Attach NEMA 17 with shaft pointing UP. Slide turntable disc onto D-shaft, lock with M3 set screw. Verify free spin." },
-  { title: "Install 6 Bins", desc: "Snap bins into turntable slots. Label: Fury (Red), Calm (Green), Mind (Blue), Body (Orange), Chaos (Purple), Order (Yellow)." },
-  { title: "Mount Gravity Slide", desc: "Attach at 27° angle. Bottom exit centered over turntable drop point. Line inside with PTFE tape." },
-  { title: "Attach Release Gate", desc: "Bolt to bottom of slide. Install MG996R servo in side pocket. Attach gate flap to horn. Test: 0°=closed, 90°=open." },
-  { title: "Mount ESP32-CAM", desc: "Secure ESP32-CAM in its mount below the slide's camera window. Camera faces DOWN through window. Install LED ring around the lens hole. USB port should be accessible for cable. ~60mm from card surface." },
-  { title: "Install Hopper + Feed Roller", desc: "NEMA 17 mount at top of slide. Rubber roller through window contacts bottom card. Hopper above at 30° tilt. Sep pad opposite roller. Insert spring + pusher." },
-  { title: "Install Sensors", desc: "IR break-beam emitter/receiver in 6mm holes through slide rails at camera position." },
-  { title: "Wire Everything", desc: "Connect ESP32 GPIO to TMC2209 drivers, servo, and IR sensor. See Wiring section for full pinout. All grounds tied together." },
-  { title: "Flash Firmware", desc: "Open Arduino IDE, install ESP32 board package, upload the sorter firmware sketch to the ESP32-CAM via the USB programmer board." },
-  { title: "Connect & Test", desc: "Plug ESP32-CAM into your computer via USB. Open rift-tracker.vercel.app, go to the Scan tab, and connect to the sorter. The website controls everything from there." },
-];
+// Assembly data is now embedded in the Assembly component for richer detail
 
 // --- WIRING DATA ---
 const WIRING = [
@@ -382,20 +370,324 @@ function Parts3D() {
 // ============================================================
 // ASSEMBLY
 // ============================================================
+function AssemblyDiagram({ children, label }) {
+  return (
+    <div style={{ background: "#0a0a1a", border: `1px solid ${S.border}`, borderRadius: 8, padding: 12, margin: "10px 0", textAlign: "center" }}>
+      <svg viewBox="0 0 400 200" style={{ width: "100%", maxWidth: 400, height: "auto" }}>{children}</svg>
+      {label && <div style={{ fontSize: 9, color: S.dark, marginTop: 4 }}>{label}</div>}
+    </div>
+  );
+}
+
+function AssemblyStep({ num, title, parts, tools, caution, children }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div onClick={() => setOpen(!open)} style={{ display: "flex", gap: 12, alignItems: "center", cursor: "pointer", padding: "6px 0" }}>
+        <div style={{ width: 32, height: 32, borderRadius: 8, background: S.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif", flexShrink: 0 }}>{num}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 14, fontWeight: 600, color: "#fff" }}>{title}</div>
+          {parts && <div style={{ fontSize: 9, color: S.accent, marginTop: 2 }}>Parts: {parts}</div>}
+        </div>
+        <div style={{ color: S.dark, fontSize: 12 }}>{open ? "▼" : "▶"}</div>
+      </div>
+      {open && (
+        <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: 14, marginLeft: 44 }}>
+          {tools && <div style={{ fontSize: 9, color: S.dim, marginBottom: 8, padding: "4px 8px", background: S.bg, borderRadius: 4, display: "inline-block" }}>🔧 Tools: {tools}</div>}
+          {caution && <div style={{ fontSize: 10, color: S.orange, marginBottom: 10, padding: "6px 10px", background: S.orange + "11", border: `1px solid ${S.orange}33`, borderRadius: 6 }}>⚠️ {caution}</div>}
+          <div style={{ fontSize: 11, color: S.text, lineHeight: 1.8 }}>{children}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SubStep({ children }) {
+  return <div style={{ display: "flex", gap: 8, marginBottom: 6 }}><span style={{ color: S.accent, flexShrink: 0 }}>→</span><span>{children}</span></div>;
+}
+
 function Assembly() {
   return (
     <div>
-      <H2>Assembly Instructions (10 Steps)</H2>
-      <P>Overall machine dimensions: ~350mm wide × 400mm deep × 500mm tall.</P>
-      {ASSEMBLY.map((s, i) => (
-        <div key={i} style={{ display: "flex", gap: 12, marginBottom: 10, alignItems: "flex-start" }}>
-          <div style={{ width: 28, height: 28, borderRadius: 6, background: S.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif", flexShrink: 0 }}>{i+1}</div>
-          <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: "10px 14px", flex: 1 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#fff", marginBottom: 4 }}>{s.title}</div>
-            <div style={{ fontSize: 10, color: S.dim, lineHeight: 1.7 }}>{s.desc}</div>
+      <H2>Assembly Instructions</H2>
+      <P>Full build guide with part-by-part details. Overall machine: ~350mm wide × 400mm deep × 500mm tall. Estimated assembly time: 2-3 hours (not including printing).</P>
+
+      <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: 12, margin: "12px 0", fontSize: 10, color: S.dim, lineHeight: 1.8 }}>
+        <span style={{ color: "#fff", fontWeight: 600 }}>Before you start:</span> Print all 3D parts (see 3D Parts tab). Have M3 screws, corner brackets, and tools ready. Test-fit parts before tightening anything.
+      </div>
+
+      <AssemblyStep num={1} title="Build the Aluminum Frame" parts="2020 V-Slot Extrusion, Corner Brackets" tools="Hacksaw or miter saw, hex wrench set, measuring tape">
+        <div style={{ fontWeight: 600, color: "#fff", marginBottom: 6 }}>Cut List:</div>
+        <SubStep><span style={{color:"#fff"}}>4× 300mm</span> — vertical uprights</SubStep>
+        <SubStep><span style={{color:"#fff"}}>2× 350mm</span> — base rails (front and back)</SubStep>
+        <SubStep><span style={{color:"#fff"}}>2× 200mm</span> — cross-braces (connect left/right uprights)</SubStep>
+        <SubStep><span style={{color:"#fff"}}>2× 150mm</span> — slide support arms (hold the gravity slide at 27°)</SubStep>
+
+        <AssemblyDiagram label="Frame layout — front view">
+          <rect x="40" y="20" width="8" height="160" fill="#4a9eff" rx="2" />
+          <rect x="352" y="20" width="8" height="160" fill="#4a9eff" rx="2" />
+          <rect x="40" y="170" width="320" height="8" fill="#4a9eff" rx="2" />
+          <rect x="40" y="20" width="320" height="8" fill="#4a9eff" rx="2" />
+          <rect x="120" y="28" width="4" height="142" fill="#ea580c" rx="1" transform="rotate(-27 122 28)" />
+          <text x="200" y="195" fill="#666" fontSize="10" textAnchor="middle">350mm base</text>
+          <text x="20" y="105" fill="#666" fontSize="10" textAnchor="middle" transform="rotate(-90 20 105)">300mm</text>
+          <text x="140" y="85" fill="#ea580c" fontSize="9" textAnchor="middle">27° slide</text>
+          <rect x="48" y="28" width="16" height="16" fill="#333" stroke="#4a9eff" strokeWidth="1" rx="2" />
+          <rect x="336" y="28" width="16" height="16" fill="#333" stroke="#4a9eff" strokeWidth="1" rx="2" />
+          <rect x="48" y="162" width="16" height="16" fill="#333" stroke="#4a9eff" strokeWidth="1" rx="2" />
+          <rect x="336" y="162" width="16" height="16" fill="#333" stroke="#4a9eff" strokeWidth="1" rx="2" />
+          <text x="70" y="42" fill="#555" fontSize="8">bracket</text>
+        </AssemblyDiagram>
+
+        <SubStep>Assemble the base rectangle first — two 350mm rails connected by two 200mm cross-braces using corner brackets</SubStep>
+        <SubStep>Attach the four 300mm verticals at each corner, pointing up</SubStep>
+        <SubStep>Add the 150mm slide support arms at 27° angle between front and back uprights</SubStep>
+        <SubStep><span style={{color:S.green}}>✓ Test:</span> Frame should stand level. All brackets finger-tight only for now — you'll adjust when mounting parts</SubStep>
+      </AssemblyStep>
+
+      <AssemblyStep num={2} title="Mount the Turntable Motor" parts="Part 08 (Motor Mount), NEMA 17 stepper #2, M3×10 screws ×4" tools="M3 hex wrench, M5 T-nuts">
+        <SubStep>Place <span style={{color:"#fff"}}>Part 08 (Motor Mount, 80×60mm plate)</span> flat on the base of the frame, centered</SubStep>
+        <SubStep>The motor mount has a center hole (Ø24mm) for the NEMA 17 boss and four M3 holes at 31mm spacing</SubStep>
+        <SubStep>Slide M5 T-nuts into the 2020 base rails, align the mount's outer tabs, and bolt down</SubStep>
+        <SubStep>Attach the NEMA 17 stepper to the mount with <span style={{color:"#fff"}}>4× M3×10 screws</span> — shaft pointing <span style={{color:S.orange}}>UP</span></SubStep>
+
+        <AssemblyDiagram label="Motor mount — top view showing NEMA 17 hole pattern">
+          <rect x="130" y="50" width="140" height="100" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="1" rx="4" />
+          <circle cx="200" cy="100" r="12" fill="none" stroke="#ea580c" strokeWidth="1.5" />
+          <circle cx="200" cy="100" r="3" fill="#ea580c" />
+          <circle cx="184" cy="84" r="2.5" fill="#666" />
+          <circle cx="216" cy="84" r="2.5" fill="#666" />
+          <circle cx="184" cy="116" r="2.5" fill="#666" />
+          <circle cx="216" cy="116" r="2.5" fill="#666" />
+          <text x="200" y="140" fill="#ea580c" fontSize="9" textAnchor="middle">31mm bolt pattern</text>
+          <text x="200" y="30" fill="#666" fontSize="10" textAnchor="middle">shaft points UP ↑</text>
+          <line x1="184" y1="84" x2="216" y2="84" stroke="#333" strokeWidth="0.5" strokeDasharray="3,3" />
+          <line x1="184" y1="84" x2="184" y2="116" stroke="#333" strokeWidth="0.5" strokeDasharray="3,3" />
+          <text x="250" y="84" fill="#555" fontSize="8">M3 screws (×4)</text>
+        </AssemblyDiagram>
+
+        <SubStep><span style={{color:S.green}}>✓ Test:</span> Shaft spins freely by hand. Motor is snug, no wobble.</SubStep>
+      </AssemblyStep>
+
+      <AssemblyStep num={3} title="Install the Turntable Disc" parts="Part 06v3 (Turntable Disc, Ø200mm)" tools="M3 set screw (included), hex key" caution="The D-shaft flat must align with the set screw. Don't overtighten or you'll crack the PLA hub.">
+        <SubStep>Slide <span style={{color:"#fff"}}>Part 06v3 (Turntable Disc)</span> onto the NEMA 17's 5mm D-shaft from above</SubStep>
+        <SubStep>The center hub (Ø24mm, 12mm deep) has a D-shaped hole that matches the motor shaft's flat</SubStep>
+        <SubStep>Push down until the hub sits flush against the motor boss</SubStep>
+        <SubStep>Tighten the M3 set screw through the side of the hub — align it with the flat of the D-shaft</SubStep>
+
+        <AssemblyDiagram label="Turntable cross-section showing shaft connection">
+          <rect x="170" y="120" width="60" height="60" fill="#1a1a3a" stroke="#666" strokeWidth="1" />
+          <text x="200" y="160" fill="#666" fontSize="8" textAnchor="middle">NEMA 17</text>
+          <rect x="196" y="80" width="8" height="40" fill="#ea580c" rx="1" />
+          <ellipse cx="200" cy="50" rx="80" ry="10" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="1.5" />
+          <rect x="120" y="40" width="160" height="15" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="1" rx="2" />
+          <circle cx="200" cy="47" r="12" fill="#0a0a1a" stroke="#4a9eff" strokeWidth="1" />
+          <rect x="196" y="35" width="8" height="25" fill="#ea580c" rx="1" />
+          <line x1="212" y1="47" x2="240" y2="47" stroke="#9333ea" strokeWidth="1.5" />
+          <circle cx="212" cy="47" r="2" fill="#9333ea" />
+          <text x="260" y="50" fill="#9333ea" fontSize="8">set screw</text>
+          <text x="200" y="25" fill="#4a9eff" fontSize="9" textAnchor="middle">Ø200mm disc</text>
+          <text x="200" y="75" fill="#ea580c" fontSize="8" textAnchor="middle">D-shaft</text>
+        </AssemblyDiagram>
+
+        <SubStep>The disc has 6 bin slots spaced at 60° intervals and index dots on the edge for alignment</SubStep>
+        <SubStep><span style={{color:S.green}}>✓ Test:</span> Spin the turntable by hand — it should rotate smoothly with no rubbing on the frame</SubStep>
+      </AssemblyStep>
+
+      <AssemblyStep num={4} title="Snap In the 6 Card Bins" parts="Part 07 (Card Bin) ×6, labels/markers" tools="None — snap fit">
+        <SubStep>Each <span style={{color:"#fff"}}>Part 07 (Card Bin, 74×103×42mm)</span> has snap tabs that click into the turntable slots</SubStep>
+        <SubStep>Press each bin straight down into its slot until the tabs click</SubStep>
+        <SubStep>Label each bin with its domain (or use colored filament when printing):</SubStep>
+        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", margin: "8px 0 8px 20px" }}>
+          {DOMAINS.map((d,i) => (
+            <div key={i} style={{ background: d.color+"18", border: `1px solid ${d.color}44`, borderRadius: 4, padding: "3px 8px", fontSize: 9, color: d.color, fontWeight: 600 }}>Bin {i+1}: {d.icon} {d.name}</div>
+          ))}
+        </div>
+        <SubStep>Each bin holds ~100 sleeved cards. Finger scoop at front for easy removal</SubStep>
+        <SubStep><span style={{color:S.green}}>✓ Test:</span> All 6 bins seated, none loose. Turntable still spins freely with bins installed</SubStep>
+      </AssemblyStep>
+
+      <AssemblyStep num={5} title="Mount the Gravity Slide" parts="Part 03 (Gravity Slide, 104×220mm), Part 03b (Card Stop Bump), PTFE tape" tools="M5 bolts + T-nuts, scissors" caution="Line the inside channel with PTFE tape BEFORE mounting. Much harder to do after.">
+        <SubStep>Cut strips of PTFE tape and lay them along the inside channel floor and walls of <span style={{color:"#fff"}}>Part 03 (Gravity Slide)</span> — this makes cards slide smoothly</SubStep>
+        <SubStep>Glue <span style={{color:"#fff"}}>Part 03b (Card Stop Bump, 64×3mm)</span> into the small recess near the camera window — this briefly pauses each card at the scan position</SubStep>
+        <SubStep>Mount the slide to the frame's angled support arms at <span style={{color:S.orange}}>27°</span> using M5 bolts through the slide's mounting tabs into T-nuts</SubStep>
+        <SubStep>The bottom exit of the slide should be centered directly above the turntable drop point</SubStep>
+
+        <AssemblyDiagram label="Gravity slide — side profile showing card path">
+          <line x1="80" y1="30" x2="320" y2="150" stroke="#4a9eff" strokeWidth="2" />
+          <rect x="75" y="25" width="30" height="20" fill="#1a1a3a" stroke="#ea580c" strokeWidth="1" rx="2" />
+          <text x="90" y="18" fill="#ea580c" fontSize="8" textAnchor="middle">hopper</text>
+          <rect x="165" y="72" width="30" height="8" fill="#9333ea" rx="1" />
+          <text x="180" y="68" fill="#9333ea" fontSize="8" textAnchor="middle">camera window</text>
+          <rect x="220" y="97" width="3" height="6" fill="#eab308" />
+          <text x="236" y="102" fill="#eab308" fontSize="7">stop bump</text>
+          <rect x="300" y="140" width="40" height="20" fill="#1a1a3a" stroke="#16a34a" strokeWidth="1" rx="2" />
+          <text x="320" y="155" fill="#16a34a" fontSize="8" textAnchor="middle">gate</text>
+          <path d="M 90 35 L 100 40 L 130 55" stroke="#fff" strokeWidth="0.8" strokeDasharray="4,3" fill="none" />
+          <text x="120" y="50" fill="#555" fontSize="7">card path →</text>
+          <text x="200" y="195" fill="#666" fontSize="9" textAnchor="middle">220mm length — 27° angle</text>
+          <rect x="308" y="160" width="50" height="30" fill="#1a1a3a" stroke="#2563eb" strokeWidth="1" rx="4" />
+          <text x="333" y="178" fill="#2563eb" fontSize="7" textAnchor="middle">turntable</text>
+        </AssemblyDiagram>
+
+        <SubStep>The slide has IR sensor holes (Ø6mm) drilled through both rails at the camera position — these are for the break-beam sensor in Step 8</SubStep>
+        <SubStep><span style={{color:S.green}}>✓ Test:</span> Drop a sleeved card in the top — it should slide smoothly to the bottom and stop at the gate position</SubStep>
+      </AssemblyStep>
+
+      <AssemblyStep num={6} title="Attach the Release Gate" parts="Part 05 (Gate Housing, 98×46mm), Part 05b (Gate Flap), MG996R servo" tools="M3 screws, small Phillips screwdriver" caution="Don't power the servo yet. Set it to 0° position manually before attaching the flap.">
+        <SubStep>Bolt <span style={{color:"#fff"}}>Part 05 (Release Gate Housing)</span> to the bottom of the gravity slide — the channel opening (68×40mm) aligns with the slide exit</SubStep>
+        <SubStep>The housing has a side pocket (40.7×19.7×42.9mm) sized exactly for the MG996R servo body</SubStep>
+        <SubStep>Slide the <span style={{color:"#fff"}}>MG996R servo</span> into the pocket. The shaft should poke out into the channel area</SubStep>
+        <SubStep>Attach the 25T cross horn to the servo shaft (comes with the servo)</SubStep>
+        <SubStep>Press-fit <span style={{color:"#fff"}}>Part 05b (Gate Flap, 74×25mm)</span> onto the horn — the flap has a Ø5.8mm horn hole</SubStep>
+
+        <AssemblyDiagram label="Gate mechanism — card held by flap, servo rotates to release">
+          <rect x="130" y="30" width="140" height="80" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="1" rx="4" />
+          <text x="200" y="25" fill="#4a9eff" fontSize="9" textAnchor="middle">Gate Housing (Part 05)</text>
+          <rect x="270" y="45" width="30" height="50" fill="#16a34a22" stroke="#16a34a" strokeWidth="1" rx="2" />
+          <text x="285" y="75" fill="#16a34a" fontSize="7" textAnchor="middle">servo</text>
+          <circle cx="270" cy="70" r="4" fill="#16a34a" />
+          <line x1="270" y1="70" x2="230" y2="70" stroke="#ea580c" strokeWidth="2" />
+          <rect x="145" y="65" width="85" height="3" fill="#ea580c" rx="1" />
+          <text x="190" y="62" fill="#ea580c" fontSize="8" textAnchor="middle">gate flap (Part 05b)</text>
+          <rect x="170" y="40" width="40" height="20" fill="#fff3" rx="2" />
+          <text x="190" y="54" fill="#fff" fontSize="7" textAnchor="middle">card</text>
+          <path d="M 270 70 L 270 110 L 230 110" stroke="#16a34a" strokeWidth="1" strokeDasharray="3,3" fill="none" />
+          <text x="240" y="125" fill="#16a34a" fontSize="7">90° = open</text>
+          <rect x="160" y="110" width="80" height="30" fill="none" stroke="#666" strokeWidth="0.5" strokeDasharray="3,3" rx="2" />
+          <text x="200" y="130" fill="#555" fontSize="7" textAnchor="middle">card drops ↓</text>
+          <text x="200" y="175" fill="#666" fontSize="8" textAnchor="middle">0° = closed (holds card) · 90° = open (releases card)</text>
+        </AssemblyDiagram>
+
+        <SubStep><span style={{color:S.green}}>✓ Test:</span> Manually rotate the servo horn — at 0° the flap should block the channel, at 90° it should clear it completely</SubStep>
+      </AssemblyStep>
+
+      <AssemblyStep num={7} title="Install Hopper + Feed Roller" parts="Part 01 (Hopper), Part 01b (Pusher), Part 02 (Roller Mount), Part 02b (Sep Pad), NEMA 17 #1, spring, silicone roller" tools="M3 + M5 screws, hex wrench" caution="The roller pressure is critical. Too tight = jams. Too loose = double-feeds. Adjust after testing with real cards.">
+        <div style={{ fontWeight: 600, color: "#fff", marginBottom: 6 }}>Feed Roller Assembly:</div>
+        <SubStep>Attach NEMA 17 stepper #1 to <span style={{color:"#fff"}}>Part 02 (Feed Roller Mount, 90×60mm)</span> using 4× M3 screws through the 31mm hole pattern</SubStep>
+        <SubStep>Push the silicone roller wheel onto the motor shaft (5mm bore fits the D-shaft)</SubStep>
+        <SubStep>Mount the assembly to the top of the gravity slide using the M5 tabs — the roller pokes through the 50×20mm window and touches the bottom card in the hopper</SubStep>
+        <SubStep>Glue a 50×12mm cork strip into the recess on <span style={{color:"#fff"}}>Part 02b (Separation Pad)</span> and mount it directly opposite the roller — this prevents double-feeding</SubStep>
+
+        <div style={{ fontWeight: 600, color: "#fff", margin: "12px 0 6px" }}>Hopper Assembly:</div>
+        <SubStep>Drop the compression spring into the Ø12mm spring pocket in the floor of <span style={{color:"#fff"}}>Part 01 (Card Hopper, 74×99×140mm)</span></SubStep>
+        <SubStep>Place <span style={{color:"#fff"}}>Part 01b (Pusher Plate, 67×92mm)</span> on top of the spring — the dimple on the bottom centers it</SubStep>
+        <SubStep>Mount the hopper above the feed roller at 30° tilt — the feed slot (58×8mm) at the bottom lines up with the roller</SubStep>
+
+        <AssemblyDiagram label="Hopper + feed roller cross-section">
+          <rect x="120" y="15" width="74" height="110" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="1.5" rx="3" transform="rotate(10 157 70)" />
+          <text x="157" y="10" fill="#4a9eff" fontSize="8" textAnchor="middle">Hopper (Part 01)</text>
+          <rect x="132" y="95" width="50" height="3" fill="#ea580c" rx="1" transform="rotate(10 157 95)" />
+          <text x="220" y="90" fill="#ea580c" fontSize="7">pusher plate</text>
+          <line x1="157" y1="108" x2="157" y2="120" stroke="#16a34a" strokeWidth="1.5" strokeDasharray="2,2" />
+          <text x="175" y="115" fill="#16a34a" fontSize="7">spring</text>
+          <rect x="135" y="70" width="44" height="20" fill="#fff2" rx="1" transform="rotate(10 157 80)" />
+          <text x="157" y="83" fill="#fff" fontSize="7" textAnchor="middle" transform="rotate(10 157 83)">cards</text>
+          <circle cx="157" cy="130" r="10" fill="#9333ea22" stroke="#9333ea" strokeWidth="1.5" />
+          <text x="180" y="133" fill="#9333ea" fontSize="7">roller</text>
+          <rect x="130" y="140" width="54" height="4" fill="#eab308" rx="1" />
+          <text x="200" y="148" fill="#eab308" fontSize="7">sep pad (Part 02b)</text>
+          <path d="M 157 140 L 170 160 L 200 180" stroke="#fff" strokeWidth="0.8" strokeDasharray="4,3" fill="none" />
+          <text x="210" y="185" fill="#555" fontSize="7">→ onto slide</text>
+        </AssemblyDiagram>
+
+        <SubStep>Load ~20 test cards (sleeved) into the hopper to verify the spring pressure pushes them against the roller</SubStep>
+        <SubStep><span style={{color:S.green}}>✓ Test:</span> Manually rotate the motor shaft — one card at a time should feed through the slot onto the slide</SubStep>
+      </AssemblyStep>
+
+      <AssemblyStep num={8} title="Install IR Break-Beam Sensor" parts="Adafruit IR Break Beam (ADA2168), 2× sensor units" tools="None — press fit into Ø6mm holes">
+        <SubStep>The gravity slide has two Ø6mm holes drilled through the rails at the camera/scan position</SubStep>
+        <SubStep>Press the IR <span style={{color:"#fff"}}>emitter</span> into one side and the <span style={{color:"#fff"}}>receiver</span> into the other — they should face each other across the 68mm channel</SubStep>
+        <SubStep>When a card slides between them, it breaks the beam and triggers the ESP32 to capture a camera frame</SubStep>
+        <SubStep>Route the 3 wires (VCC, GND, OUT) from the receiver along the slide rail toward the ESP32</SubStep>
+        <SubStep><span style={{color:S.green}}>✓ Test:</span> With the sensor wired to 3.3V, slide a card through — the output should go LOW when the beam is broken</SubStep>
+      </AssemblyStep>
+
+      <AssemblyStep num={9} title="Mount the ESP32-CAM" parts="Part 04 (ESP32-CAM Mount, 55×45×67mm), ESP32-CAM board, LED ring light" tools="M2 screws or hot glue, USB cable" caution="The OV2640 camera lens is fragile. Don't touch the lens surface.">
+        <SubStep>Secure the <span style={{color:"#fff"}}>ESP32-CAM board</span> to <span style={{color:"#fff"}}>Part 04 (Mount, 55×45mm)</span> using M2 standoffs or a dab of hot glue — camera lens faces DOWN through the Ø12mm hole</SubStep>
+        <SubStep>If using an LED ring light, seat it in the Ø48/30mm holder around the lens hole</SubStep>
+        <SubStep>Mount the assembly below the gravity slide's camera window (50×70mm opening) — the camera should be about 60mm from where the card sits</SubStep>
+        <SubStep>Route the USB cable out the side — this connects to your computer for both power and WiFi communication</SubStep>
+
+        <AssemblyDiagram label="ESP32-CAM mount — camera looks down through slide window at card">
+          <rect x="130" y="70" width="140" height="15" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="1" rx="2" />
+          <text x="200" y="65" fill="#4a9eff" fontSize="8" textAnchor="middle">gravity slide</text>
+          <rect x="165" y="72" width="70" height="11" fill="#0a0a1a" stroke="#666" strokeWidth="0.5" />
+          <text x="200" y="80" fill="#666" fontSize="6" textAnchor="middle">camera window</text>
+          <rect x="155" y="90" width="90" height="50" fill="#1a1a3a" stroke="#16a34a" strokeWidth="1.5" rx="4" />
+          <text x="200" y="105" fill="#16a34a" fontSize="8" textAnchor="middle">ESP32-CAM</text>
+          <circle cx="200" cy="120" r="8" fill="#16a34a22" stroke="#16a34a" strokeWidth="1" />
+          <circle cx="200" cy="120" r="3" fill="#16a34a" />
+          <text x="200" y="135" fill="#16a34a" fontSize="6" textAnchor="middle">OV2640</text>
+          <circle cx="200" cy="120" r="20" fill="none" stroke="#eab308" strokeWidth="0.8" strokeDasharray="3,2" />
+          <text x="230" y="112" fill="#eab308" fontSize="7">LED ring</text>
+          <path d="M 200 128 L 200 160 L 210 170" stroke="#fff" strokeWidth="0.8" strokeDasharray="4,3" fill="none" />
+          <text x="220" y="175" fill="#555" fontSize="7">↓ looks at card</text>
+          <rect x="170" y="155" width="60" height="15" fill="#fff2" stroke="#fff3" strokeWidth="0.5" rx="2" />
+          <text x="200" y="165" fill="#fff" fontSize="7" textAnchor="middle">card here</text>
+          <line x1="245" y1="110" x2="280" y2="110" stroke="#ea580c" strokeWidth="1.5" />
+          <text x="300" y="113" fill="#ea580c" fontSize="7">USB out</text>
+          <text x="200" y="195" fill="#666" fontSize="8" textAnchor="middle">~60mm lens-to-card distance</text>
+        </AssemblyDiagram>
+
+        <SubStep><span style={{color:S.green}}>✓ Test:</span> Connect USB, open the ESP32's stream URL in a browser — you should see a live camera feed of the card slot area</SubStep>
+      </AssemblyStep>
+
+      <AssemblyStep num={10} title="Wire Everything" parts="TMC2209 drivers ×2, LM2596 buck converter, breadboard, jumper wires, 12V PSU" tools="Multimeter (important!), wire strippers" caution="Set the LM2596 buck converter to 5.5V with a multimeter BEFORE connecting the servo. 12V will fry it instantly.">
+        <div style={{ fontWeight: 600, color: "#fff", marginBottom: 6 }}>Power Chain:</div>
+        <SubStep><span style={{color:"#fff"}}>12V PSU</span> → TMC2209 VMOT pins (both drivers)</SubStep>
+        <SubStep><span style={{color:"#fff"}}>12V PSU</span> → LM2596 Buck IN → dial to <span style={{color:S.orange}}>5.5V</span> → MG996R servo (red wire)</SubStep>
+        <SubStep><span style={{color:"#fff"}}>USB from computer</span> → ESP32-CAM-MB → powers the ESP32 (5V via USB)</SubStep>
+        <SubStep><span style={{color:"#fff"}}>ESP32 3.3V pin</span> → both TMC2209 VIO pins (logic voltage)</SubStep>
+        <SubStep><span style={{color:"#fff"}}>ESP32 5V pin</span> → IR sensor VCC (red wire)</SubStep>
+        <SubStep><span style={{color:S.orange}}>ALL GND tied together:</span> ESP32 GND + 12V GND + Buck GND + Servo GND + IR GND + TMC2209 GND</SubStep>
+
+        <div style={{ fontWeight: 600, color: "#fff", margin: "12px 0 6px" }}>Signal Wires (ESP32 → Components):</div>
+        <SubStep>GPIO 12 → TMC2209 #1 STEP (feed motor)</SubStep>
+        <SubStep>GPIO 13 → TMC2209 #1 DIR</SubStep>
+        <SubStep>GPIO 14 → TMC2209 #2 STEP (turntable motor)</SubStep>
+        <SubStep>GPIO 2 → TMC2209 #2 DIR</SubStep>
+        <SubStep>GPIO 15 → MG996R signal wire (orange)</SubStep>
+        <SubStep>GPIO 3 → IR sensor OUT (white wire)</SubStep>
+
+        <div style={{ fontWeight: 600, color: "#fff", margin: "12px 0 6px" }}>TMC2209 Driver Wiring (each driver):</div>
+        <SubStep>VMOT → 12V(+), GND → 12V(-)</SubStep>
+        <SubStep>VIO → ESP32 3.3V, GND → ESP32 GND</SubStep>
+        <SubStep>Motor coil A: A1 → Black wire, A2 → Green wire</SubStep>
+        <SubStep>Motor coil B: B1 → Red wire, B2 → Blue wire</SubStep>
+
+        <SubStep><span style={{color:S.green}}>✓ Test:</span> Power on 12V supply. No smoke. Measure 5.5V at buck converter output. ESP32 boots and connects to WiFi (check serial monitor at 115200 baud).</SubStep>
+      </AssemblyStep>
+
+      <AssemblyStep num={11} title="Flash the ESP32 Firmware" parts="ESP32-CAM-MB (USB programmer), USB cable, computer" tools="Arduino IDE (free download)">
+        <SubStep>Download and install <span style={{color:"#fff"}}>Arduino IDE</span> from arduino.cc</SubStep>
+        <SubStep>Go to <span style={{color:"#fff"}}>File → Preferences → Additional Board Manager URLs</span> and add:<br/><span style={{color:S.cyan, fontSize:9}}>https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json</span></SubStep>
+        <SubStep>Go to <span style={{color:"#fff"}}>Tools → Board → Board Manager</span>, search "esp32", install <span style={{color:"#fff"}}>esp32 by Espressif</span></SubStep>
+        <SubStep>Select board: <span style={{color:"#fff"}}>Tools → Board → ESP32 Arduino → AI Thinker ESP32-CAM</span></SubStep>
+        <SubStep>Snap the ESP32-CAM onto the ESP32-CAM-MB programmer board. Plug in USB.</SubStep>
+        <SubStep>Open the sorter firmware sketch (see Files tab), edit WiFi credentials, and click Upload</SubStep>
+        <SubStep>Open <span style={{color:"#fff"}}>Tools → Serial Monitor</span> at 115200 baud — you should see the ESP32's local IP address printed</SubStep>
+        <SubStep><span style={{color:S.green}}>✓ Test:</span> Open that IP address in your browser — you should see the camera stream and be able to hit the API endpoints</SubStep>
+      </AssemblyStep>
+
+      <AssemblyStep num={12} title="Connect & First Sort" parts="Sorted machine, computer, Rift Tracker account" tools="A stack of Riftbound cards to test with">
+        <SubStep>Make sure the ESP32 is connected to your WiFi and you know its IP address</SubStep>
+        <SubStep>Open <span style={{color:S.cyan}}>rift-tracker.vercel.app</span> and log into your account</SubStep>
+        <SubStep>Go to the scan/sort interface and enter the ESP32's IP address to connect</SubStep>
+        <SubStep>Load 10-20 test cards into the hopper</SubStep>
+        <SubStep>Select "Domain Sort" mode and hit Start</SubStep>
+        <SubStep>Watch the live camera feed — each card is identified, the turntable rotates, and the card drops into the correct bin</SubStep>
+        <SubStep>Check your Collection tab — every scanned card should appear automatically</SubStep>
+
+        <div style={{ background: S.green + "11", border: `1px solid ${S.green}33`, borderRadius: 8, padding: 12, marginTop: 12 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: S.green, marginBottom: 4 }}>🎉 You're done!</div>
+          <div style={{ fontSize: 10, color: S.dim, lineHeight: 1.7 }}>
+            If cards are double-feeding: tighten the separation pad or add more cork.<br/>
+            If cards are jamming: loosen the roller pressure and add more PTFE tape to the slide.<br/>
+            If domain detection is wrong: adjust the LED ring brightness for more consistent lighting.
           </div>
         </div>
-      ))}
+      </AssemblyStep>
     </div>
   );
 }
