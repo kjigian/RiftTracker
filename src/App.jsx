@@ -758,42 +758,60 @@ function Assembly() {
         <SubStep>Mount the hopper above the feed roller at the elevated end of the bridge — the roller protrudes through the floor slot and the feed slot at the front wall lines up with the bridge entrance</SubStep>
         <SubStep>The spring pushes cards down onto the roller. When the motor spins, the roller grabs the bottom card and pulls it out through the feed slot</SubStep>
 
-        <AssemblyDiagram label="Hopper + feed roller cross-section" viewBox="0 0 600 400">
+        <AssemblyDiagram label="Hopper + feed roller cross-section (side view, looking along roller axis)" viewBox="0 0 600 400">
           {/* Hopper body */}
-          <rect x="120" y="15" width="140" height="210" fill="#1a1a3a" stroke="#6c63ff" strokeWidth="2" rx="5" />
-          <text x="190" y="10" fill="#6c63ff" fontSize="14" textAnchor="middle" fontWeight="600">Hopper (Part 05)</text>
+          <rect x="150" y="15" width="140" height="210" fill="#1a1a3a" stroke="#6c63ff" strokeWidth="2" rx="5" />
+          <text x="220" y="10" fill="#6c63ff" fontSize="14" textAnchor="middle" fontWeight="600">Hopper (Part 05)</text>
           {/* Card stack */}
-          <rect x="140" y="55" width="100" height="60" fill="#fff" opacity="0.08" rx="2" />
-          <text x="190" y="90" fill="#fff" fontSize="13" textAnchor="middle">card stack</text>
+          <rect x="170" y="55" width="100" height="60" fill="#fff" opacity="0.08" rx="2" />
+          <text x="220" y="90" fill="#fff" fontSize="13" textAnchor="middle">card stack</text>
           {/* Pusher plate */}
-          <rect x="138" y="45" width="104" height="6" fill="#f59e0b" rx="2" />
-          <text x="268" y="52" fill="#f59e0b" fontSize="12" fontWeight="600">← Pusher (05b)</text>
-          {/* Spring */}
-          <path d="M 190 125 Q 180 135 190 145 Q 200 155 190 165 Q 180 175 190 185" stroke="#10b981" strokeWidth="2" fill="none" />
-          <text x="210" y="160" fill="#10b981" fontSize="12" fontWeight="600">spring</text>
-          {/* Hopper floor with roller slot */}
-          <rect x="120" y="200" width="50" height="8" fill="#6c63ff" opacity="0.6" rx="1" />
-          <rect x="210" y="200" width="50" height="8" fill="#6c63ff" opacity="0.6" rx="1" />
-          <rect x="170" y="200" width="40" height="8" fill="#0a0a1a" />
-          <line x1="60" y1="204" x2="168" y2="204" stroke="#9333ea" strokeWidth="1" strokeDasharray="3,3" />
-          <text x="55" y="208" fill="#9333ea" fontSize="12" textAnchor="end" fontWeight="600">roller slot</text>
-          {/* Bottom card on roller */}
-          <rect x="140" y="191" width="100" height="4" fill="#fff" opacity="0.3" rx="1" />
-          <text x="268" y="196" fill="#fff" fontSize="11" opacity="0.7">← bottom card on roller</text>
-          {/* Roller poking through */}
-          <circle cx="190" cy="220" r="20" fill="#9333ea" opacity="0.15" stroke="#9333ea" strokeWidth="2" />
-          <circle cx="190" cy="220" r="5" fill="#9333ea" />
-          <text x="268" y="224" fill="#9333ea" fontSize="12" fontWeight="600">← Roller pokes UP</text>
-          {/* Feed slot */}
-          <rect x="116" y="198" width="8" height="20" fill="#0a0a1a" />
-          <text x="80" y="215" fill="#ec4899" fontSize="11" textAnchor="end">feed slot →</text>
-          {/* Sep pad */}
-          <rect x="102" y="208" width="14" height="18" fill="#f59e0b" opacity="0.4" stroke="#f59e0b" strokeWidth="1.5" rx="2" />
-          <line x1="80" y1="240" x2="109" y2="226" stroke="#f59e0b" strokeWidth="1" strokeDasharray="3,3" />
-          <text x="75" y="248" fill="#f59e0b" fontSize="12" textAnchor="end" fontWeight="600">sep pad (cork)</text>
-          {/* Motor */}
-          <rect x="155" y="248" width="70" height="45" fill="#1a1a3a" stroke="#666" strokeWidth="1.5" rx="3" />
-          <text x="190" y="278" fill="#888" fontSize="12" textAnchor="middle">NEMA 17</text>
+          <rect x="168" y="45" width="104" height="6" fill="#f59e0b" rx="2" />
+          <text x="298" y="52" fill="#f59e0b" fontSize="12" fontWeight="600">← Pusher (05b)</text>
+          {/* Spring — toward the back of hopper */}
+          <path d="M 250 125 Q 240 135 250 145 Q 260 155 250 165 Q 240 175 250 185" stroke="#10b981" strokeWidth="2" fill="none" />
+          <text x="268" y="160" fill="#10b981" fontSize="12" fontWeight="600">spring</text>
+          {/* Hopper floor — roller slot is NEAR the feed slot (front wall, left side in this view) */}
+          <rect x="150" y="200" width="20" height="8" fill="#6c63ff" opacity="0.6" rx="1" />
+          <rect x="200" y="200" width="90" height="8" fill="#6c63ff" opacity="0.6" rx="1" />
+          <rect x="170" y="200" width="30" height="8" fill="#0a0a1a" />
+          {/* Roller slot label */}
+          <line x1="185" y1="215" x2="185" y2="235" stroke="#9333ea" strokeWidth="1" strokeDasharray="3,3" />
+          <text x="185" y="250" fill="#9333ea" fontSize="12" textAnchor="middle" fontWeight="600">roller slot</text>
+          <text x="185" y="265" fill="#9333ea" fontSize="10" textAnchor="middle">(near feed slot)</text>
+          {/* Bottom card resting on roller */}
+          <rect x="170" y="191" width="100" height="4" fill="#fff" opacity="0.3" rx="1" />
+          <text x="298" y="196" fill="#fff" fontSize="11" opacity="0.7">← bottom card on roller</text>
+          {/* Roller poking through near feed slot */}
+          <circle cx="185" cy="218" r="16" fill="#9333ea" opacity="0.15" stroke="#9333ea" strokeWidth="2" />
+          <circle cx="185" cy="218" r="4" fill="#9333ea" />
+          <text x="298" y="222" fill="#9333ea" fontSize="12" fontWeight="600">← Roller (pokes UP near feed slot)</text>
+          {/* Feed slot at front wall (left side in this side-view) */}
+          <rect x="146" y="198" width="8" height="16" fill="#0a0a1a" />
+          <text x="105" y="206" fill="#ec4899" fontSize="12" textAnchor="end" fontWeight="600">feed slot →</text>
+          {/* Sep pad on front face */}
+          <rect x="132" y="202" width="14" height="14" fill="#f59e0b" opacity="0.4" stroke="#f59e0b" strokeWidth="1.5" rx="2" />
+          <line x1="105" y1="230" x2="139" y2="216" stroke="#f59e0b" strokeWidth="1" strokeDasharray="3,3" />
+          <text x="100" y="238" fill="#f59e0b" fontSize="12" textAnchor="end" fontWeight="600">sep pad (cork)</text>
+          {/* Motor mounted HORIZONTALLY to the side — shaft along X, pointing into page */}
+          <rect x="90" y="225" width="50" height="45" fill="#1a1a3a" stroke="#666" strokeWidth="1.5" rx="3" />
+          <text x="115" y="252" fill="#888" fontSize="11" textAnchor="middle">NEMA 17</text>
+          <text x="115" y="265" fill="#888" fontSize="9" textAnchor="middle">(horizontal)</text>
+          {/* Shaft line from motor to roller */}
+          <line x1="140" y1="240" x2="185" y2="218" stroke="#ea580c" strokeWidth="2" strokeDasharray="4,3" />
+          <text x="175" y="285" fill="#ea580c" fontSize="11" textAnchor="middle">shaft axis → across card width</text>
+          {/* Card exit path */}
+          <path d="M 138 210 L 110 230 L 80 270" stroke="#fff" strokeWidth="1.5" strokeDasharray="6,4" fill="none" />
+          <text x="70" y="288" fill="#aaa" fontSize="12">↓ onto bridge</text>
+          {/* How it works box */}
+          <rect x="370" y="50" width="210" height="170" fill="#0e0e1a" stroke="#333" strokeWidth="1" rx="6" />
+          <text x="475" y="75" fill="#fff" fontSize="14" fontWeight="600" textAnchor="middle">How it feeds:</text>
+          <text x="382" y="100" fill="#aaa" fontSize="12">1. Spring pushes cards DOWN</text>
+          <text x="382" y="122" fill="#aaa" fontSize="12">2. Bottom card rests ON roller</text>
+          <text x="382" y="144" fill="#aaa" fontSize="12">3. Roller spins → pushes card</text>
+          <text x="382" y="158" fill="#aaa" fontSize="12">{"   "}toward feed slot</text>
+          <text x="382" y="180" fill="#aaa" fontSize="12">4. Sep pad blocks 2nd card</text>
+          <text x="382" y="202" fill="#aaa" fontSize="12">5. Card exits onto bridge</text>
         </AssemblyDiagram>
 
         <SubStep>Load ~20 test cards (sleeved) into the hopper to verify the spring pressure pushes them down onto the roller</SubStep>
