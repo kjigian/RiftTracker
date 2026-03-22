@@ -39,11 +39,13 @@ const SHOP = [
   ]},
   { cat: "📡 Electronics & Wiring", items: [
     { name: "Adafruit IR Break Beam 5mm (ADA2168)", link: "https://www.amazon.com/Adafruit-IR-Break-Beam-Sensor/dp/B00XW2NVJU", price: "$4", qty: 2, compat: "3.3V/5V, open-collector output. Triggers camera capture when card is in position.", note: "Buy 2. One for card detection." },
-    { name: "12V 5A DC Power Supply", link: "https://www.amazon.com/s?k=12V+5A+DC+power+supply+barrel+jack", price: "$12", qty: 1, compat: "Feeds TMC2209 VMOT (4.75-28V). 5A for 2× NEMA 17 at 2A each.", note: "Get barrel jack screw terminal adapter too." },
+    { name: "12V 5A DC Power Supply", link: "https://www.amazon.com/s?k=12V+5A+DC+power+supply+barrel+jack", price: "$12", qty: 1, compat: "Feeds TMC2209 VMOT (4.75-28V). 5A for 2× NEMA 17 at 2A each.", note: "Barrel jack output." },
+    { name: "Barrel Jack Screw Terminal Adapter", link: "https://www.amazon.com/s?k=barrel+jack+screw+terminal+adapter+5.5x2.1", price: "$3", qty: 1, compat: "Converts 12V barrel jack to screw terminals for easy wiring to breadboard.", note: "5.5×2.1mm standard size." },
     { name: "LM2596 Buck Converter (3pk)", link: "https://www.amazon.com/s?k=LM2596+buck+converter+adjustable", price: "$8", qty: 1, compat: "Steps 12V → 5.5V for MG996R servo. 3A output handles servo stall current.", note: "Set to 5.5V with multimeter before connecting servo." },
     { name: "Dupont Jumper Wires (120pc)", link: "https://www.amazon.com/Elegoo-EL-CP-004-Multicolored-Breadboard-arduino/dp/B01EV70C78", price: "$7", qty: 1, compat: "2.54mm pitch matches all components.", note: "M-M, M-F, F-F variety." },
     { name: "Breadboard 830 (2pk)", link: "https://www.amazon.com/s?k=breadboard+830+tie+points+2+pack", price: "$7", qty: 1, compat: "Standard pitch for prototyping.", note: "Separate power from signals." },
-    { name: "M3 Screw Kit (240pc)", link: "https://www.amazon.com/s?k=M3+screw+assortment+kit+hex+socket+nuts", price: "$9", qty: 1, compat: "NEMA 17 uses M3 at 31mm spacing.", note: "Various lengths + nuts + washers." },
+    { name: "M3 Screw Kit (240pc)", link: "https://www.amazon.com/s?k=M3+screw+assortment+kit+hex+socket+nuts", price: "$9", qty: 1, compat: "NEMA 17 uses M3 at 31mm spacing. Separation pad mounts to hopper with M3.", note: "Various lengths + nuts + washers." },
+    { name: "M2 Screw + Standoff Kit", link: "https://www.amazon.com/s?k=M2+screw+standoff+kit+assortment", price: "$7", qty: 1, compat: "ESP32-CAM mount has M2 standoff holes (Ø2.4mm) for securing the board. M3 kit does NOT include M2.", note: "Need 4× M2 screws + 4× standoffs (~5mm tall)." },
   ]},
   { cat: "🖨️ Consumables", items: [
     { name: "PLA Filament 1kg (1.75mm)", link: "https://www.amazon.com/s?k=PLA+filament+1kg+1.75mm", price: "$20", qty: 1, compat: "All parts designed for PLA.", note: "~700g total, one spool covers it." },
