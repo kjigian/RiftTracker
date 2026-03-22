@@ -50,7 +50,7 @@ const SHOP = [
   ]},
   { cat: "🖨️ Consumables", items: [
     { name: "PLA Filament 1kg (1.75mm)", link: "https://www.amazon.com/s?k=PLA+filament+1kg+1.75mm", price: "$20", qty: 1, compat: "All parts designed for PLA.", note: "~700g total, one spool covers it." },
-    { name: "PTFE Tape (plumber's tape)", link: "https://www.amazon.com/s?k=PTFE+plumber+tape", price: "$3", qty: 1, compat: "Lines gravity slide for smooth card travel.", note: "Replace when worn." },
+    { name: "PTFE Tape (plumber's tape)", link: "https://www.amazon.com/s?k=PTFE+plumber+tape", price: "$3", qty: 1, compat: "Lines card bridge channel for smooth card travel.", note: "Replace when worn." },
     { name: "Cork Sheet (1mm, self-adhesive)", link: "https://www.amazon.com/s?k=cork+sheet+1mm+self+adhesive", price: "$5", qty: 1, compat: "50×12mm piece for separation pad.", note: "Prevents double-feeding." },
   ]},
 ];
@@ -217,14 +217,15 @@ function Overview() {
   const specs = [
     ["Architecture", "ESP32-CAM + WiFi → Website does the thinking"],
     ["Motors", "2 NEMA 17 steppers + 1 MG996R servo"],
-    ["Vision", "ESP32-CAM (OV2640) → streams to browser → Tesseract.js OCR"],
+    ["Vision", "ESP32-CAM (OV2640) looks UP through acrylic window → browser OCR"],
     ["Controller", "ESP32-CAM (~$10) — replaces Raspberry Pi ($80+)"],
-    ["Turntable", "Ø200mm, direct-drive, no belt needed"],
+    ["Turntable", "Ø240mm (prints in 2 halves), gear-driven, camera in center"],
     ["Sort Bins", "6 (Fury, Calm, Mind, Body, Chaos, Order)"],
     ["Strategy", "Two-pass: domain color first, then energy cost"],
     ["Speed", "~2-3 sec/card (~200 cards in 15 min)"],
     ["Est. Cost", "$50–80 total"],
-    ["Print Time", "~25-30 hrs (~700g PLA, under 1 spool)"],
+    ["Print Time", "~25-30 hrs (~800g PLA, under 1 spool)"],
+    ["Structure", "Fully 3D printed — no aluminum extrusion frame"],
   ];
 
   return (
@@ -250,12 +251,12 @@ function Overview() {
       <H2>Card Flow (6 Stages)</H2>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {[
-          ["📦 Hopper", "Cards stand on edge, tilted 30°. Spring pushes stack toward roller. No motor.", null],
-          ["🔄 Feed Roller", "NEMA 17 + rubber roller pulls one card through slot. Sep pad prevents doubles.", S.orange],
-          ["📐 Gravity Slide", "Card slides down 27° channel. No motor — gravity is free.", S.green],
-          ["📸 ESP32-CAM", "Camera captures image, streams to website. IR sensor triggers at exact position.", S.pink],
-          ["🚪 Release Gate", "MG996R servo holds card while turntable positions. Website sends open command.", S.accent],
-          ["🎯 Turntable", "NEMA 17 direct-drive rotates 6 bins. Card drops in.", S.cyan],
+          ["📦 Hopper", "Cards stacked flat. Spring pushes stack down onto roller. Roller pulls bottom card out.", null],
+          ["🔄 Feed Roller", "NEMA 17 + silicone roller under hopper. Sep pad prevents doubles. Card exits onto bridge.", S.orange],
+          ["📐 Card Bridge", "Card slides down inclined bridge (~10°) toward center. Gravity does the work.", S.green],
+          ["📸 Camera Window", "Card stops at gate over clear acrylic window. ESP32-CAM inside center column looks UP, captures full card face.", S.pink],
+          ["🚪 Release Gate", "MG996R servo holds card during scan. Opens to release card toward exit chute.", S.accent],
+          ["🎯 Turntable", "Ø240mm disc with 6 bins rotates around center column. Pinion gear positions correct bin at exit. Card drops in.", S.cyan],
         ].map(([name, desc, color], i) => (
           <div key={i} style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: "10px 14px", display: "flex", gap: 12, alignItems: "flex-start" }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: color || S.dim, fontFamily: "'Space Grotesk',sans-serif", minWidth: 24, textAlign: "center" }}>{i+1}</div>
@@ -267,12 +268,12 @@ function Overview() {
         ))}
       </div>
 
-      <H2 style={{ marginTop: 24 }}>Hopper Mechanism (How It Works)</H2>
-      <P>The hopper is tilted 30° forward. Cards stand on their long edge, stacked front-to-back. Gravity pulls the stack toward the front wall. The order from back to front:</P>
+      <H2 style={{ marginTop: 24 }}>How the Card Path Works</H2>
+      <P>The hopper sits on the elevated end of a card bridge. Spring pressure pushes cards down onto the roller, which pulls the bottom card through the feed slot. The card slides along the inclined bridge toward the center column.</P>
       <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: 16, margin: "10px 0", fontSize: 11, lineHeight: 1.8, color: S.text }}>
-        <span style={{color:S.green}}>Back wall</span> → <span style={{color:S.green}}>Spring</span> → <span style={{color:S.orange}}>Pusher plate</span> → <span style={{color:"#fff"}}>Card stack</span> → <span style={{color:S.pink}}>Front card contacts roller</span> → <span style={{color:S.pink}}>Roller pulls card DOWN through slot</span> → <span style={{color:S.cyan}}>Card exits onto gravity slide</span>
+        <span style={{color:S.green}}>Hopper</span> → <span style={{color:S.orange}}>Feed roller grabs bottom card</span> → <span style={{color:S.pink}}>Card slides down bridge (~10°)</span> → <span style={{color:S.accent}}>Gate stops card over camera window</span> → <span style={{color:"#fff"}}>Camera reads card from below</span> → <span style={{color:S.cyan}}>Gate opens → card slides to exit → drops into turntable bin</span>
       </div>
-      <P>The card exits downward — the same direction the slide goes — so there's no sharp turn. The roller only fights one card's friction against the separation pad. The spring gives constant pressure regardless of stack size (200 or 5 cards).</P>
+      <P>The camera is inside a fixed center column, looking UP through an acrylic window. The turntable rotates around the column. This means the camera never moves — only the bins rotate to catch the sorted card.</P>
     </div>
   );
 }
