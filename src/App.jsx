@@ -64,7 +64,7 @@ const PARTS_3D = [
   { num: "04", name: "ESP32-CAM Mount", ext: "55×45×67mm", inner: "ESP32-CAM: 27×40mm, M2 standoffs", orient: "Upright", infill: "20%", time: "~1.5 hrs", weight: "~25g", notes: "ESP32-CAM sits 60mm above card. LED ring holder Ø48/30mm. Camera lens faces down through Ø12mm hole. USB port accessible from side." },
   { num: "05", name: "Release Gate", ext: "96×46×53mm", inner: "Channel: 68×40mm", orient: "Flat on back", infill: "30%", time: "~2.5 hrs", weight: "~45g", notes: "MG996R pocket. Card exit 64×36mm bottom. Servo 0°=closed, 90°=open." },
   { num: "05b", name: "Gate Flap", ext: "66×25×2mm", inner: "Horn hole: Ø5.8mm", orient: "Flat", infill: "100%", time: "~15 min", weight: "~3g", notes: "Press-fits onto MG996R 25T cross horn." },
-  { num: "06v3", name: "Turntable (6-Bin)", ext: "Ø200mm×17mm", inner: "6 slots at 60°, D-shaft Ø5mm", orient: "Flat", infill: "20%, 4 walls", time: "~4 hrs", weight: "~120g", notes: "FITS STANDARD BED. Direct drive — no belt. Hub Ø24×12mm. M3 set screw. Index dots on edge. Bin pockets 78×75mm (partial depth — bins sit 73% recessed, secured by snap tabs)." },
+  { num: "06v3", name: "Turntable (6-Bin)", ext: "Ø200mm×32mm", inner: "6 pockets at 60°, D-shaft Ø5mm", orient: "Flat", infill: "20%, 4 walls", time: "~5 hrs", weight: "~90g", notes: "FITS STANDARD BED. 20mm thick disc with 15mm deep bin pockets (78×75mm). Bins sink 15mm into disc, 27mm above surface. Direct drive hub Ø24×12mm. M3 set screw. Index dots on edge." },
   { num: "07", name: "Card Bin ×6", ext: "74×99×57mm", inner: "70×95×40mm", orient: "Upright", infill: "20%", time: "~1.5 hrs ea", weight: "~35g ea", notes: "Funnel flares 5mm/side. Label slot 50×15mm. Finger scoop. Snap tabs. Holds ~100 sleeved cards." },
   { num: "08", name: "Motor Mount", ext: "80×60×5mm", inner: "NEMA 17 centered", orient: "Flat", infill: "30%", time: "~1 hr", weight: "~20g", notes: "Shaft points UP into turntable. Direct drive — clean flat plate, no belt hardware." },
 ];
@@ -372,11 +372,11 @@ function Parts3D() {
 // ============================================================
 // ASSEMBLY
 // ============================================================
-function AssemblyDiagram({ children, label }) {
+function AssemblyDiagram({ children, label, viewBox = "0 0 600 300", maxW = 600 }) {
   return (
-    <div style={{ background: "#0a0a1a", border: `1px solid ${S.border}`, borderRadius: 8, padding: 12, margin: "10px 0", textAlign: "center" }}>
-      <svg viewBox="0 0 400 200" style={{ width: "100%", maxWidth: 400, height: "auto" }}>{children}</svg>
-      {label && <div style={{ fontSize: 9, color: S.dark, marginTop: 4 }}>{label}</div>}
+    <div style={{ background: "#0a0a1a", border: `1px solid ${S.border}`, borderRadius: 8, padding: 16, margin: "12px 0", textAlign: "center" }}>
+      <svg viewBox={viewBox} style={{ width: "100%", maxWidth: maxW, height: "auto" }}>{children}</svg>
+      {label && <div style={{ fontSize: 13, color: S.dim, marginTop: 8, fontStyle: "italic" }}>{label}</div>}
     </div>
   );
 }
@@ -409,195 +409,70 @@ function SubStep({ children }) {
 }
 
 function FullAssemblyDiagram() {
+  // Clean side-view schematic — big readable labels, clear flow
+  const stages = [
+    { label: "Card Hopper", sub: "74×99×140mm · Spring + Pusher", color: "#6c63ff", part: "01", icon: "📥" },
+    { label: "Feed Roller + Sep Pad", sub: "NEMA 17 + Silicone Roller · Cork Pad", color: "#9333ea", part: "02", icon: "🔄" },
+    { label: "Gravity Slide", sub: "220mm long · 27° angle · PTFE-lined", color: "#06b6d4", part: "03", icon: "📐" },
+    { label: "ESP32-CAM + IR Sensor", sub: "Camera scans card · IR triggers capture", color: "#10b981", part: "04", icon: "📷" },
+    { label: "Release Gate", sub: "MG996R servo holds/releases card", color: "#ec4899", part: "05", icon: "🚪" },
+    { label: "Turntable + 6 Bins", sub: "Ø200mm disc · NEMA 17 direct drive", color: "#6c63ff", part: "06-08", icon: "🎯" },
+  ];
+
   return (
-    <div style={{ background: "#0a0a1a", border: `1px solid ${S.accent}44`, borderRadius: 12, padding: 16, margin: "16px 0" }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: S.accent, fontFamily: "'Space Grotesk',sans-serif", marginBottom: 8, textAlign: "center" }}>Full Machine — Exploded View</div>
-      <svg viewBox="0 0 500 700" style={{ width: "100%", maxWidth: 500, height: "auto", display: "block", margin: "0 auto" }}>
-        {/* Frame */}
-        <rect x="60" y="40" width="8" height="620" fill="#4a9eff" rx="2" opacity="0.5" />
-        <rect x="432" y="40" width="8" height="620" fill="#4a9eff" rx="2" opacity="0.5" />
-        <rect x="60" y="650" width="380" height="8" fill="#4a9eff" rx="2" opacity="0.5" />
-        <rect x="60" y="40" width="380" height="8" fill="#4a9eff" rx="2" opacity="0.5" />
-        <text x="22" y="340" fill="#4a9eff" fontSize="9" textAnchor="middle" transform="rotate(-90 22 340)" opacity="0.5">2020 V-Slot Frame</text>
+    <div style={{ background: "#0a0a1a", border: `1px solid ${S.accent}44`, borderRadius: 12, padding: 20, margin: "16px 0" }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: S.accent, fontFamily: "'Space Grotesk',sans-serif", marginBottom: 4, textAlign: "center" }}>Full Machine — Side View</div>
+      <div style={{ fontSize: 10, color: S.dim, textAlign: "center", marginBottom: 16 }}>~350mm wide × 400mm deep × 500mm tall · 2020 V-Slot aluminum frame</div>
 
-        {/* === HOPPER (top) === */}
-        <rect x="175" y="52" width="74" height="110" fill="#1a1a3a" stroke="#6c63ff" strokeWidth="1.5" rx="4" />
-        <rect x="175" y="52" width="74" height="110" fill="#6c63ff" opacity="0.06" rx="4" />
-        {/* Cards inside */}
-        <rect x="185" y="70" width="54" height="40" fill="#fff" opacity="0.08" rx="2" />
-        <text x="212" y="94" fill="#fff" fontSize="7" textAnchor="middle" opacity="0.5">cards</text>
-        {/* Pusher plate */}
-        <rect x="183" y="66" width="58" height="3" fill="#f59e0b" rx="1" />
-        <text x="270" y="70" fill="#f59e0b" fontSize="7">← Pusher (01b)</text>
-        {/* Spring */}
-        <path d="M 212 112 Q 207 117 212 122 Q 217 127 212 132 Q 207 137 212 142 Q 217 147 212 152" stroke="#10b981" strokeWidth="1.2" fill="none" />
-        <text x="228" y="135" fill="#10b981" fontSize="7">spring</text>
-        {/* Feed slot */}
-        <rect x="185" y="152" width="54" height="8" fill="#0a0a1a" />
-        <text x="270" y="160" fill="#ec4899" fontSize="7">← Feed Slot (68×10mm)</text>
-        {/* Roller slot in floor */}
-        <rect x="197" y="158" width="30" height="4" fill="#9333ea" opacity="0.3" />
-        <text x="140" y="165" fill="#9333ea" fontSize="7" textAnchor="end">Roller Slot →</text>
-        {/* Label */}
-        <text x="212" y="48" fill="#6c63ff" fontSize="9" fontWeight="600" textAnchor="middle">Hopper (01)</text>
-
-        {/* === FEED ROLLER === */}
-        <circle cx="212" cy="175" r="13" fill="#9333ea" opacity="0.15" stroke="#9333ea" strokeWidth="1.5" />
-        <circle cx="212" cy="175" r="4" fill="#9333ea" />
-        <text x="270" y="178" fill="#9333ea" fontSize="7">← Silicone Roller on NEMA 17</text>
-        <rect x="168" y="168" width="20" height="14" fill="#1a1a3a" stroke="#666" strokeWidth="0.8" rx="2" />
-        <text x="155" y="178" fill="#666" fontSize="6" textAnchor="end">Motor</text>
-
-        {/* Sep pad */}
-        <rect x="195" y="190" width="34" height="6" fill="#f59e0b" opacity="0.3" stroke="#f59e0b" strokeWidth="0.8" rx="1" />
-        <text x="270" y="196" fill="#f59e0b" fontSize="7">← Sep Pad + Cork (02b)</text>
-        <text x="212" y="210" fill="#666" fontSize="7" textAnchor="middle">Roller Mount (02)</text>
-
-        {/* === CONNECTOR ARROW — hopper to slide === */}
-        <path d="M 212 200 L 250 240" stroke="#fff" strokeWidth="0.8" strokeDasharray="4,3" fill="none" markerEnd="url(#arrowhead)" />
-        <text x="240" y="225" fill="#555" fontSize="7">card feeds →</text>
-
-        {/* === GRAVITY SLIDE (angled) === */}
-        <g transform="rotate(-27 250 310)">
-          <rect x="178" y="240" width="74" height="180" fill="#1a1a3a" stroke="#06b6d4" strokeWidth="1.5" rx="3" />
-          <rect x="178" y="240" width="74" height="180" fill="#06b6d4" opacity="0.04" rx="3" />
-          {/* Rails */}
-          <rect x="178" y="240" width="4" height="180" fill="#06b6d4" opacity="0.3" rx="1" />
-          <rect x="248" y="240" width="4" height="180" fill="#06b6d4" opacity="0.3" rx="1" />
-          {/* Camera window */}
-          <rect x="190" y="310" width="50" height="45" fill="#0a0a1a" stroke="#10b981" strokeWidth="1" strokeDasharray="3,2" rx="2" />
-          <text x="215" y="336" fill="#10b981" fontSize="7" textAnchor="middle">Camera</text>
-          <text x="215" y="346" fill="#10b981" fontSize="7" textAnchor="middle">Window</text>
-          {/* IR sensor holes */}
-          <circle cx="180" cy="305" r="3" fill="#ec4899" opacity="0.5" />
-          <circle cx="250" cy="305" r="3" fill="#ec4899" opacity="0.5" />
-          {/* Card stop bump */}
-          <rect x="190" y="360" width="50" height="2" fill="#f59e0b" rx="0.5" />
-          {/* PTFE tape indication */}
-          <rect x="182" y="242" width="66" height="176" fill="#fff" opacity="0.02" rx="2" />
-        </g>
-        <text x="350" y="280" fill="#06b6d4" fontSize="9" fontWeight="600">Gravity Slide (03)</text>
-        <text x="350" y="292" fill="#06b6d4" fontSize="7">27° angle, PTFE-lined</text>
-        <text x="350" y="304" fill="#06b6d4" fontSize="7">68mm channel</text>
-
-        {/* === IR SENSORS === */}
-        <text x="100" y="310" fill="#ec4899" fontSize="7" textAnchor="end">IR Break Beam →</text>
-
-        {/* === ESP32-CAM MOUNT (beside slide at camera window) === */}
-        <rect x="310" y="330" width="55" height="50" fill="#1a1a3a" stroke="#10b981" strokeWidth="1.5" rx="4" />
-        <rect x="310" y="330" width="55" height="50" fill="#10b981" opacity="0.06" rx="4" />
-        <rect x="324" y="342" width="27" height="26" fill="#10b981" opacity="0.15" stroke="#10b981" strokeWidth="0.8" rx="2" />
-        <circle cx="337" cy="355" r="6" fill="#10b981" opacity="0.3" stroke="#10b981" strokeWidth="1" />
-        <circle cx="337" cy="355" r="2" fill="#10b981" />
-        <text x="337" y="325" fill="#10b981" fontSize="8" fontWeight="600" textAnchor="middle">ESP32-CAM Mount (04)</text>
-        <text x="337" y="390" fill="#10b981" fontSize="7" textAnchor="middle">LED Ring + OV2640</text>
-        <path d="M 310 355 L 280 340" stroke="#10b981" strokeWidth="0.8" strokeDasharray="3,2" fill="none" />
-        <text x="285" y="350" fill="#555" fontSize="6">↑ looks at card</text>
-        {/* USB cable out */}
-        <line x1="365" y1="355" x2="395" y2="355" stroke="#ea580c" strokeWidth="1.2" />
-        <text x="398" y="358" fill="#ea580c" fontSize="6">USB →</text>
-
-        {/* === CARD STOP BUMP === */}
-        <text x="100" y="398" fill="#f59e0b" fontSize="7" textAnchor="end">Card Stop (03b) →</text>
-
-        {/* === RELEASE GATE === */}
-        <rect x="192" y="440" width="96" height="46" fill="#1a1a3a" stroke="#ec4899" strokeWidth="1.5" rx="4" />
-        <rect x="192" y="440" width="96" height="46" fill="#ec4899" opacity="0.06" rx="4" />
-        {/* Card channel */}
-        <rect x="198" y="446" width="68" height="34" fill="#0a0a1a" rx="2" />
-        {/* Gate flap */}
-        <rect x="200" y="462" width="64" height="3" fill="#f59e0b" rx="1" />
-        {/* Servo */}
-        <rect x="270" y="448" width="16" height="30" fill="#16a34a" opacity="0.3" stroke="#16a34a" strokeWidth="1" rx="2" />
-        <circle cx="270" cy="463" r="3" fill="#16a34a" />
-        <text x="240" y="435" fill="#ec4899" fontSize="8" fontWeight="600" textAnchor="middle">Release Gate (05)</text>
-        <text x="310" y="465" fill="#16a34a" fontSize="6">Servo</text>
-        <text x="232" y="472" fill="#f59e0b" fontSize="6" textAnchor="middle">Flap (05b)</text>
-
-        {/* === CONNECTOR ARROW — gate to turntable === */}
-        <path d="M 232 486 L 232 520" stroke="#fff" strokeWidth="0.8" strokeDasharray="4,3" fill="none" />
-        <text x="245" y="505" fill="#555" fontSize="7">card drops ↓</text>
-
-        {/* === TURNTABLE === */}
-        <ellipse cx="250" cy="550" rx="100" ry="25" fill="#1a1a3a" stroke="#6c63ff" strokeWidth="1.5" />
-        <ellipse cx="250" cy="550" rx="100" ry="25" fill="#6c63ff" opacity="0.06" />
-        {/* Hub */}
-        <ellipse cx="250" cy="550" rx="12" ry="4" fill="#ea580c" opacity="0.5" />
-        {/* Bin slots indicated */}
-        {[0,60,120,180,240,300].map((a,i) => {
-          const rad = a * Math.PI / 180;
-          const cx = 250 + 65 * Math.cos(rad);
-          const cy = 550 + 16 * Math.sin(rad);
-          return <rect key={i} x={cx-10} y={cy-6} width="20" height="12" fill="#6c63ff" opacity="0.15" stroke="#6c63ff" strokeWidth="0.5" rx="2" />;
-        })}
-        <text x="250" y="530" fill="#6c63ff" fontSize="8" fontWeight="600" textAnchor="middle">Turntable (06v3) — Ø200mm</text>
-
-        {/* === CARD BINS === */}
-        <rect x="130" y="580" width="35" height="30" fill="#1a1a3a" stroke="#f59e0b" strokeWidth="1" rx="3" />
-        <rect x="172" y="580" width="35" height="30" fill="#1a1a3a" stroke="#f59e0b" strokeWidth="1" rx="3" />
-        <rect x="214" y="580" width="35" height="30" fill="#1a1a3a" stroke="#f59e0b" strokeWidth="1" rx="3" />
-        <rect x="256" y="580" width="35" height="30" fill="#1a1a3a" stroke="#f59e0b" strokeWidth="1" rx="3" />
-        <rect x="298" y="580" width="35" height="30" fill="#1a1a3a" stroke="#f59e0b" strokeWidth="1" rx="3" />
-        <rect x="340" y="580" width="35" height="30" fill="#1a1a3a" stroke="#f59e0b" strokeWidth="1" rx="3" />
-        <text x="250" y="625" fill="#f59e0b" fontSize="8" fontWeight="600" textAnchor="middle">6× Card Bins (07) — snap into turntable</text>
-
-        {/* === MOTOR MOUNT (below turntable) === */}
-        <rect x="210" y="635" width="80" height="8" fill="#666" stroke="#666" strokeWidth="1" rx="2" />
-        <rect x="238" y="643" width="24" height="20" fill="#1a1a3a" stroke="#ea580c" strokeWidth="1" rx="2" />
-        <text x="250" y="657" fill="#ea580c" fontSize="6" textAnchor="middle">NEMA 17</text>
-        <text x="250" y="678" fill="#666" fontSize="7" textAnchor="middle">Motor Mount (08) — direct drive</text>
-
-        {/* === LEGEND === */}
-        <rect x="370" y="55" width="120" height="195" fill="#0e0e1a" stroke="#1a1a2e" strokeWidth="1" rx="6" />
-        <text x="430" y="72" fill="#fff" fontSize="8" fontWeight="600" textAnchor="middle">Parts Legend</text>
-        {[
-          ["#6c63ff", "01 Hopper"],
-          ["#f59e0b", "01b Pusher / 02b Sep Pad"],
-          ["#9333ea", "02 Feed Roller"],
-          ["#06b6d4", "03 Gravity Slide"],
-          ["#10b981", "04 ESP32-CAM Mount"],
-          ["#ec4899", "05 Release Gate"],
-          ["#f59e0b", "05b Gate Flap"],
-          ["#6c63ff", "06v3 Turntable"],
-          ["#f59e0b", "07 Card Bins ×6"],
-          ["#666", "08 Motor Mount"],
-        ].map(([c, t], i) => (
-          <g key={i}>
-            <rect x="378" y={80 + i * 16} width="8" height="8" fill={c} rx="1" opacity="0.7" />
-            <text x="392" y={88 + i * 16} fill="#888" fontSize="7">{t}</text>
-          </g>
+      {/* Vertical flow diagram */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0 }}>
+        {stages.map((s, i) => (
+          <div key={i} style={{ width: "100%", maxWidth: 420 }}>
+            {/* Stage box */}
+            <div style={{
+              background: s.color + "0a",
+              border: `2px solid ${s.color}55`,
+              borderRadius: 10,
+              padding: "12px 16px",
+              display: "flex", alignItems: "center", gap: 14,
+            }}>
+              <div style={{ fontSize: 28, flexShrink: 0, width: 40, textAlign: "center" }}>{s.icon}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: s.color, fontFamily: "'Space Grotesk',sans-serif" }}>{s.label}</span>
+                  <span style={{ fontSize: 9, color: s.color, opacity: 0.6, fontFamily: "monospace" }}>Part {s.part}</span>
+                </div>
+                <div style={{ fontSize: 10, color: S.dim, marginTop: 2 }}>{s.sub}</div>
+              </div>
+              {/* Width indicator */}
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: s.color, fontFamily: "'Space Grotesk',sans-serif" }}>68mm</div>
+                <div style={{ fontSize: 8, color: S.dim }}>card path</div>
+              </div>
+            </div>
+            {/* Arrow between stages */}
+            {i < stages.length - 1 && (
+              <div style={{ textAlign: "center", padding: "2px 0", color: S.dim, fontSize: 16 }}>
+                {["↓ spring pushes card down", "↓ card slides by gravity", "↓ IR detects → camera scans", "↓ OCR identifies → turntable rotates", "↓ gate opens → card drops"][i]}
+                <div style={{ fontSize: 18, marginTop: -2 }}>↓</div>
+              </div>
+            )}
+          </div>
         ))}
+      </div>
 
-        {/* Arrow marker */}
-        <defs>
-          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-            <path d="M 0 0 L 8 3 L 0 6 Z" fill="#fff" opacity="0.5" />
-          </marker>
-        </defs>
-      </svg>
-
-      {/* Card path flow diagram */}
-      <div style={{ marginTop: 12, padding: 12, background: "#0e0e1a", borderRadius: 8 }}>
-        <div style={{ fontSize: 10, fontWeight: 600, color: "#fff", marginBottom: 8, textAlign: "center" }}>Card Path (top → bottom)</div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, flexWrap: "wrap", fontSize: 8 }}>
-          {[
-            ["Hopper", "#6c63ff"],
-            ["↓ spring pushes down", "#555"],
-            ["Roller grabs card", "#9333ea"],
-            ["→ Sep pad blocks 2nd", "#f59e0b"],
-            ["↓ through feed slot", "#555"],
-            ["Gravity Slide (27°)", "#06b6d4"],
-            ["↓ IR detects card", "#ec4899"],
-            ["Camera scans", "#10b981"],
-            ["↓ card hits stop bump", "#555"],
-            ["Gate holds card", "#ec4899"],
-            ["→ OCR identifies", "#10b981"],
-            ["Turntable rotates", "#6c63ff"],
-            ["Gate opens", "#ec4899"],
-            ["↓ card drops into bin", "#f59e0b"],
-          ].map(([label, color], i) => (
-            <span key={i} style={{ color, padding: "2px 6px", background: color + "11", borderRadius: 4, border: `1px solid ${color}22` }}>{label}</span>
-          ))}
+      {/* How it works summary */}
+      <div style={{ marginTop: 16, padding: 14, background: "#0e0e1a", borderRadius: 8, maxWidth: 420, margin: "16px auto 0" }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: "#fff", marginBottom: 8, textAlign: "center" }}>How One Card Gets Sorted</div>
+        <div style={{ fontSize: 10, color: S.dim, lineHeight: 2.0 }}>
+          <span style={{color:"#6c63ff"}}>1.</span> Spring pushes card stack down onto roller<br/>
+          <span style={{color:"#9333ea"}}>2.</span> Roller spins → grabs bottom card → sep pad blocks the rest<br/>
+          <span style={{color:"#06b6d4"}}>3.</span> Card slides down the 27° gravity slide<br/>
+          <span style={{color:"#10b981"}}>4.</span> IR sensor detects card → ESP32-CAM takes a photo<br/>
+          <span style={{color:"#10b981"}}>5.</span> Browser runs OCR → identifies card name + domain color<br/>
+          <span style={{color:"#6c63ff"}}>6.</span> Website tells ESP32 to rotate turntable to the right bin<br/>
+          <span style={{color:"#ec4899"}}>7.</span> Gate servo opens → card drops into bin → gate closes<br/>
+          <span style={{color:"#10b981"}}>8.</span> Card is logged to your Supabase collection automatically
         </div>
       </div>
     </div>
@@ -623,20 +498,32 @@ function Assembly() {
         <SubStep><span style={{color:"#fff"}}>2× 200mm</span> — cross-braces (connect left/right uprights)</SubStep>
         <SubStep><span style={{color:"#fff"}}>2× 150mm</span> — slide support arms (hold the gravity slide at 27°)</SubStep>
 
-        <AssemblyDiagram label="Frame layout — front view">
-          <rect x="40" y="20" width="8" height="160" fill="#4a9eff" rx="2" />
-          <rect x="352" y="20" width="8" height="160" fill="#4a9eff" rx="2" />
-          <rect x="40" y="170" width="320" height="8" fill="#4a9eff" rx="2" />
-          <rect x="40" y="20" width="320" height="8" fill="#4a9eff" rx="2" />
-          <rect x="120" y="28" width="4" height="142" fill="#ea580c" rx="1" transform="rotate(-27 122 28)" />
-          <text x="200" y="195" fill="#666" fontSize="10" textAnchor="middle">350mm base</text>
-          <text x="20" y="105" fill="#666" fontSize="10" textAnchor="middle" transform="rotate(-90 20 105)">300mm</text>
-          <text x="140" y="85" fill="#ea580c" fontSize="9" textAnchor="middle">27° slide</text>
-          <rect x="48" y="28" width="16" height="16" fill="#333" stroke="#4a9eff" strokeWidth="1" rx="2" />
-          <rect x="336" y="28" width="16" height="16" fill="#333" stroke="#4a9eff" strokeWidth="1" rx="2" />
-          <rect x="48" y="162" width="16" height="16" fill="#333" stroke="#4a9eff" strokeWidth="1" rx="2" />
-          <rect x="336" y="162" width="16" height="16" fill="#333" stroke="#4a9eff" strokeWidth="1" rx="2" />
-          <text x="70" y="42" fill="#555" fontSize="8">bracket</text>
+        <AssemblyDiagram label="Frame layout — front view" viewBox="0 0 600 320">
+          {/* Left upright */}
+          <rect x="80" y="30" width="12" height="220" fill="#4a9eff" rx="2" />
+          {/* Right upright */}
+          <rect x="420" y="30" width="12" height="220" fill="#4a9eff" rx="2" />
+          {/* Top rail */}
+          <rect x="80" y="30" width="352" height="12" fill="#4a9eff" rx="2" />
+          {/* Bottom rail */}
+          <rect x="80" y="238" width="352" height="12" fill="#4a9eff" rx="2" />
+          {/* Slide at 27° */}
+          <rect x="170" y="42" width="6" height="196" fill="#ea580c" rx="1" transform="rotate(-27 173 42)" />
+          {/* Dimension labels */}
+          <text x="256" y="278" fill="#aaa" fontSize="14" textAnchor="middle" fontWeight="600">350mm base rail</text>
+          <text x="50" y="150" fill="#aaa" fontSize="14" textAnchor="middle" fontWeight="600" transform="rotate(-90 50 150)">300mm uprights</text>
+          <text x="220" y="120" fill="#ea580c" fontSize="14" textAnchor="middle" fontWeight="600">27° slide</text>
+          {/* Corner brackets */}
+          <rect x="92" y="42" width="22" height="22" fill="#333" stroke="#4a9eff" strokeWidth="1.5" rx="3" />
+          <rect x="398" y="42" width="22" height="22" fill="#333" stroke="#4a9eff" strokeWidth="1.5" rx="3" />
+          <rect x="92" y="226" width="22" height="22" fill="#333" stroke="#4a9eff" strokeWidth="1.5" rx="3" />
+          <rect x="398" y="226" width="22" height="22" fill="#333" stroke="#4a9eff" strokeWidth="1.5" rx="3" />
+          <text x="128" y="58" fill="#888" fontSize="12">bracket</text>
+          {/* Legend */}
+          <rect x="460" y="50" width="18" height="8" fill="#4a9eff" rx="1" />
+          <text x="484" y="58" fill="#aaa" fontSize="12">2020 extrusion</text>
+          <rect x="460" y="72" width="18" height="8" fill="#ea580c" rx="1" />
+          <text x="484" y="80" fill="#aaa" fontSize="12">slide support</text>
         </AssemblyDiagram>
 
         <SubStep>Assemble the base rectangle first — two 350mm rails connected by two 200mm cross-braces using corner brackets</SubStep>
@@ -651,19 +538,32 @@ function Assembly() {
         <SubStep>Slide M5 T-nuts into the 2020 base rails, align the mount's outer tabs, and bolt down</SubStep>
         <SubStep>Attach the NEMA 17 stepper to the mount with <span style={{color:"#fff"}}>4× M3×10 screws</span> — shaft pointing <span style={{color:S.orange}}>UP</span></SubStep>
 
-        <AssemblyDiagram label="Motor mount — top view showing NEMA 17 hole pattern">
-          <rect x="130" y="50" width="140" height="100" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="1" rx="4" />
-          <circle cx="200" cy="100" r="12" fill="none" stroke="#ea580c" strokeWidth="1.5" />
-          <circle cx="200" cy="100" r="3" fill="#ea580c" />
-          <circle cx="184" cy="84" r="2.5" fill="#666" />
-          <circle cx="216" cy="84" r="2.5" fill="#666" />
-          <circle cx="184" cy="116" r="2.5" fill="#666" />
-          <circle cx="216" cy="116" r="2.5" fill="#666" />
-          <text x="200" y="140" fill="#ea580c" fontSize="9" textAnchor="middle">31mm bolt pattern</text>
-          <text x="200" y="30" fill="#666" fontSize="10" textAnchor="middle">shaft points UP ↑</text>
-          <line x1="184" y1="84" x2="216" y2="84" stroke="#333" strokeWidth="0.5" strokeDasharray="3,3" />
-          <line x1="184" y1="84" x2="184" y2="116" stroke="#333" strokeWidth="0.5" strokeDasharray="3,3" />
-          <text x="250" y="84" fill="#555" fontSize="8">M3 screws (×4)</text>
+        <AssemblyDiagram label="Motor mount — top view showing NEMA 17 hole pattern" viewBox="0 0 600 300">
+          {/* Mount plate */}
+          <rect x="150" y="40" width="200" height="160" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="2" rx="6" />
+          <text x="250" y="30" fill="#4a9eff" fontSize="14" textAnchor="middle" fontWeight="600">Motor Mount (Part 08) — 80×60mm</text>
+          {/* Center boss hole */}
+          <circle cx="250" cy="120" r="24" fill="none" stroke="#ea580c" strokeWidth="2" />
+          <circle cx="250" cy="120" r="5" fill="#ea580c" />
+          <text x="250" y="125" fill="#fff" fontSize="10" textAnchor="middle">shaft</text>
+          {/* M3 bolt holes */}
+          <circle cx="226" cy="96" r="5" fill="#666" />
+          <circle cx="274" cy="96" r="5" fill="#666" />
+          <circle cx="226" cy="144" r="5" fill="#666" />
+          <circle cx="274" cy="144" r="5" fill="#666" />
+          {/* Dimension lines */}
+          <line x1="226" y1="96" x2="274" y2="96" stroke="#555" strokeWidth="1" strokeDasharray="4,4" />
+          <line x1="226" y1="96" x2="226" y2="144" stroke="#555" strokeWidth="1" strokeDasharray="4,4" />
+          {/* Labels */}
+          <text x="250" y="170" fill="#ea580c" fontSize="13" textAnchor="middle" fontWeight="600">31mm bolt pattern</text>
+          <text x="250" y="260" fill="#aaa" fontSize="14" textAnchor="middle" fontWeight="600">Shaft points UP ↑ into turntable</text>
+          {/* Callout for M3 */}
+          <line x1="274" y1="96" x2="380" y2="70" stroke="#888" strokeWidth="1" />
+          <text x="386" y="74" fill="#aaa" fontSize="13">M3 screws (×4)</text>
+          {/* Mounting tabs */}
+          <rect x="140" y="90" width="10" height="60" fill="#4a9eff" opacity="0.3" rx="2" />
+          <rect x="350" y="90" width="10" height="60" fill="#4a9eff" opacity="0.3" rx="2" />
+          <text x="420" y="125" fill="#4a9eff" fontSize="12">M5 tab →{"\n"}bolts to frame</text>
         </AssemblyDiagram>
 
         <SubStep><span style={{color:S.green}}>✓ Test:</span> Shaft spins freely by hand. Motor is snug, no wobble.</SubStep>
@@ -675,19 +575,33 @@ function Assembly() {
         <SubStep>Push down until the hub sits flush against the motor boss</SubStep>
         <SubStep>Tighten the M3 set screw through the side of the hub — align it with the flat of the D-shaft</SubStep>
 
-        <AssemblyDiagram label="Turntable cross-section showing shaft connection">
-          <rect x="170" y="120" width="60" height="60" fill="#1a1a3a" stroke="#666" strokeWidth="1" />
-          <text x="200" y="160" fill="#666" fontSize="8" textAnchor="middle">NEMA 17</text>
-          <rect x="196" y="80" width="8" height="40" fill="#ea580c" rx="1" />
-          <ellipse cx="200" cy="50" rx="80" ry="10" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="1.5" />
-          <rect x="120" y="40" width="160" height="15" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="1" rx="2" />
-          <circle cx="200" cy="47" r="12" fill="#0a0a1a" stroke="#4a9eff" strokeWidth="1" />
-          <rect x="196" y="35" width="8" height="25" fill="#ea580c" rx="1" />
-          <line x1="212" y1="47" x2="240" y2="47" stroke="#9333ea" strokeWidth="1.5" />
-          <circle cx="212" cy="47" r="2" fill="#9333ea" />
-          <text x="260" y="50" fill="#9333ea" fontSize="8">set screw</text>
-          <text x="200" y="25" fill="#4a9eff" fontSize="9" textAnchor="middle">Ø200mm disc</text>
-          <text x="200" y="75" fill="#ea580c" fontSize="8" textAnchor="middle">D-shaft</text>
+        <AssemblyDiagram label="Turntable cross-section showing shaft connection" viewBox="0 0 600 320">
+          {/* Motor body */}
+          <rect x="220" y="200" width="80" height="80" fill="#1a1a3a" stroke="#666" strokeWidth="1.5" rx="3" />
+          <text x="260" y="250" fill="#888" fontSize="13" textAnchor="middle">NEMA 17</text>
+          {/* D-shaft */}
+          <rect x="254" y="120" width="12" height="80" fill="#ea580c" rx="2" />
+          <text x="290" y="165" fill="#ea580c" fontSize="13" fontWeight="600">D-shaft (5mm)</text>
+          {/* Turntable disc - cross section */}
+          <rect x="80" y="70" width="360" height="30" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="2" rx="4" />
+          <text x="260" y="45" fill="#4a9eff" fontSize="15" textAnchor="middle" fontWeight="600">Ø200mm disc (20mm thick)</text>
+          {/* Hub */}
+          <rect x="230" y="70" width="60" height="50" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="1.5" rx="3" />
+          <text x="260" y="140" fill="#4a9eff" fontSize="12" textAnchor="middle">hub (Ø24mm)</text>
+          {/* Shaft through hub */}
+          <rect x="254" y="60" width="12" height="40" fill="#ea580c" rx="2" />
+          {/* Set screw */}
+          <line x1="290" y1="90" x2="340" y2="90" stroke="#9333ea" strokeWidth="2" />
+          <circle cx="290" cy="90" r="4" fill="#9333ea" />
+          <text x="348" y="95" fill="#9333ea" fontSize="13" fontWeight="600">M3 set screw</text>
+          {/* Bin pockets */}
+          <rect x="90" y="70" width="70" height="22" fill="#0a0a1a" stroke="#eab308" strokeWidth="1" strokeDasharray="4,4" />
+          <rect x="360" y="70" width="70" height="22" fill="#0a0a1a" stroke="#eab308" strokeWidth="1" strokeDasharray="4,4" />
+          <text x="125" y="60" fill="#eab308" fontSize="12" textAnchor="middle">15mm pocket</text>
+          <text x="395" y="60" fill="#eab308" fontSize="12" textAnchor="middle">15mm pocket</text>
+          {/* Dimension */}
+          <line x1="80" y1="108" x2="440" y2="108" stroke="#666" strokeWidth="1" strokeDasharray="3,3" />
+          <text x="260" y="290" fill="#aaa" fontSize="13" textAnchor="middle">D-shaft flat aligns with set screw — don't overtighten PLA hub</text>
         </AssemblyDiagram>
 
         <SubStep>The disc has 6 bin slots spaced at 60° intervals and index dots on the edge for alignment</SubStep>
@@ -713,21 +627,33 @@ function Assembly() {
         <SubStep>Mount the slide to the frame's angled support arms at <span style={{color:S.orange}}>27°</span> using M5 bolts through the slide's mounting tabs into T-nuts</SubStep>
         <SubStep>The bottom exit of the slide should be centered directly above the turntable drop point</SubStep>
 
-        <AssemblyDiagram label="Gravity slide — side profile showing card path">
-          <line x1="80" y1="30" x2="320" y2="150" stroke="#4a9eff" strokeWidth="2" />
-          <rect x="75" y="25" width="30" height="20" fill="#1a1a3a" stroke="#ea580c" strokeWidth="1" rx="2" />
-          <text x="90" y="18" fill="#ea580c" fontSize="8" textAnchor="middle">hopper</text>
-          <rect x="165" y="72" width="30" height="8" fill="#9333ea" rx="1" />
-          <text x="180" y="68" fill="#9333ea" fontSize="8" textAnchor="middle">camera window</text>
-          <rect x="220" y="97" width="3" height="6" fill="#eab308" />
-          <text x="236" y="102" fill="#eab308" fontSize="7">stop bump</text>
-          <rect x="300" y="140" width="40" height="20" fill="#1a1a3a" stroke="#16a34a" strokeWidth="1" rx="2" />
-          <text x="320" y="155" fill="#16a34a" fontSize="8" textAnchor="middle">gate</text>
-          <path d="M 90 35 L 100 40 L 130 55" stroke="#fff" strokeWidth="0.8" strokeDasharray="4,3" fill="none" />
-          <text x="120" y="50" fill="#555" fontSize="7">card path →</text>
-          <text x="200" y="195" fill="#666" fontSize="9" textAnchor="middle">220mm length — 27° angle</text>
-          <rect x="308" y="160" width="50" height="30" fill="#1a1a3a" stroke="#2563eb" strokeWidth="1" rx="4" />
-          <text x="333" y="178" fill="#2563eb" fontSize="7" textAnchor="middle">turntable</text>
+        <AssemblyDiagram label="Gravity slide — side profile showing card path" viewBox="0 0 600 300">
+          {/* Slide body - angled line */}
+          <line x1="80" y1="30" x2="420" y2="200" stroke="#4a9eff" strokeWidth="4" />
+          <line x1="80" y1="40" x2="420" y2="210" stroke="#4a9eff" strokeWidth="2" opacity="0.4" />
+          {/* Hopper at top */}
+          <rect x="50" y="10" width="60" height="45" fill="#1a1a3a" stroke="#ea580c" strokeWidth="2" rx="4" />
+          <text x="80" y="37" fill="#ea580c" fontSize="12" textAnchor="middle" fontWeight="600">Hopper</text>
+          {/* Camera window */}
+          <rect x="200" y="82" width="50" height="14" fill="#9333ea" opacity="0.3" stroke="#9333ea" strokeWidth="1.5" rx="2" />
+          <text x="225" y="72" fill="#9333ea" fontSize="13" textAnchor="middle" fontWeight="600">Camera window</text>
+          {/* Stop bump */}
+          <rect x="290" y="126" width="8" height="12" fill="#eab308" rx="1" />
+          <text x="316" y="136" fill="#eab308" fontSize="12" fontWeight="600">Stop bump</text>
+          {/* Gate at bottom */}
+          <rect x="390" y="185" width="70" height="40" fill="#1a1a3a" stroke="#16a34a" strokeWidth="2" rx="4" />
+          <text x="425" y="210" fill="#16a34a" fontSize="12" textAnchor="middle" fontWeight="600">Gate</text>
+          {/* Card path arrow */}
+          <path d="M 110 45 L 160 70 L 200 88" stroke="#fff" strokeWidth="1.5" strokeDasharray="6,4" fill="none" />
+          <text x="155" y="60" fill="#aaa" fontSize="12">card slides down →</text>
+          {/* Turntable below */}
+          <rect x="400" y="235" width="90" height="35" fill="#1a1a3a" stroke="#2563eb" strokeWidth="2" rx="6" />
+          <text x="445" y="258" fill="#2563eb" fontSize="12" textAnchor="middle" fontWeight="600">Turntable</text>
+          {/* Drop arrow */}
+          <path d="M 425 225 L 435 235" stroke="#fff" strokeWidth="1.5" fill="none" />
+          <text x="455" y="228" fill="#aaa" fontSize="11">drops ↓</text>
+          {/* Overall label */}
+          <text x="260" y="280" fill="#aaa" fontSize="14" textAnchor="middle" fontWeight="600">220mm slide length — 27° angle</text>
         </AssemblyDiagram>
 
         <SubStep>The slide has IR sensor holes (Ø6mm) drilled through both rails at the camera position — these are for the break-beam sensor in Step 8</SubStep>
@@ -741,22 +667,30 @@ function Assembly() {
         <SubStep>Attach the 25T cross horn to the servo shaft (comes with the servo)</SubStep>
         <SubStep>Press-fit <span style={{color:"#fff"}}>Part 05b (Gate Flap, 74×25mm)</span> onto the horn — the flap has a Ø5.8mm horn hole</SubStep>
 
-        <AssemblyDiagram label="Gate mechanism — card held by flap, servo rotates to release">
-          <rect x="130" y="30" width="140" height="80" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="1" rx="4" />
-          <text x="200" y="25" fill="#4a9eff" fontSize="9" textAnchor="middle">Gate Housing (Part 05)</text>
-          <rect x="270" y="45" width="30" height="50" fill="#16a34a22" stroke="#16a34a" strokeWidth="1" rx="2" />
-          <text x="285" y="75" fill="#16a34a" fontSize="7" textAnchor="middle">servo</text>
-          <circle cx="270" cy="70" r="4" fill="#16a34a" />
-          <line x1="270" y1="70" x2="230" y2="70" stroke="#ea580c" strokeWidth="2" />
-          <rect x="145" y="65" width="85" height="3" fill="#ea580c" rx="1" />
-          <text x="190" y="62" fill="#ea580c" fontSize="8" textAnchor="middle">gate flap (Part 05b)</text>
-          <rect x="170" y="40" width="40" height="20" fill="#fff3" rx="2" />
-          <text x="190" y="54" fill="#fff" fontSize="7" textAnchor="middle">card</text>
-          <path d="M 270 70 L 270 110 L 230 110" stroke="#16a34a" strokeWidth="1" strokeDasharray="3,3" fill="none" />
-          <text x="240" y="125" fill="#16a34a" fontSize="7">90° = open</text>
-          <rect x="160" y="110" width="80" height="30" fill="none" stroke="#666" strokeWidth="0.5" strokeDasharray="3,3" rx="2" />
-          <text x="200" y="130" fill="#555" fontSize="7" textAnchor="middle">card drops ↓</text>
-          <text x="200" y="175" fill="#666" fontSize="8" textAnchor="middle">0° = closed (holds card) · 90° = open (releases card)</text>
+        <AssemblyDiagram label="Gate mechanism — card held by flap, servo rotates to release" viewBox="0 0 600 320">
+          {/* Gate housing */}
+          <rect x="100" y="50" width="240" height="130" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="2" rx="6" />
+          <text x="220" y="35" fill="#4a9eff" fontSize="15" textAnchor="middle" fontWeight="600">Gate Housing (Part 05)</text>
+          {/* Servo body */}
+          <rect x="340" y="70" width="50" height="90" fill="#16a34a22" stroke="#16a34a" strokeWidth="2" rx="4" />
+          <text x="365" y="125" fill="#16a34a" fontSize="12" textAnchor="middle" fontWeight="600">Servo</text>
+          {/* Servo shaft */}
+          <circle cx="340" cy="115" r="7" fill="#16a34a" />
+          {/* Gate flap */}
+          <line x1="340" y1="115" x2="260" y2="115" stroke="#ea580c" strokeWidth="4" />
+          <rect x="120" y="108" width="140" height="6" fill="#ea580c" rx="2" />
+          <text x="190" y="100" fill="#ea580c" fontSize="13" textAnchor="middle" fontWeight="600">Gate Flap (Part 05b)</text>
+          {/* Card above flap */}
+          <rect x="160" y="65" width="70" height="35" fill="#fff" opacity="0.08" stroke="#fff" strokeWidth="1" rx="3" />
+          <text x="195" y="88" fill="#fff" fontSize="12" textAnchor="middle">card</text>
+          {/* Open position ghost */}
+          <path d="M 340 115 L 340 175 L 280 175" stroke="#16a34a" strokeWidth="2" strokeDasharray="5,5" fill="none" />
+          <text x="280" y="200" fill="#16a34a" fontSize="13" fontWeight="600">90° = open (releases card)</text>
+          {/* Drop zone */}
+          <rect x="150" y="185" width="130" height="45" fill="none" stroke="#666" strokeWidth="1.5" strokeDasharray="5,5" rx="4" />
+          <text x="215" y="213" fill="#888" fontSize="13" textAnchor="middle">card drops ↓</text>
+          {/* Summary */}
+          <text x="260" y="280" fill="#aaa" fontSize="14" textAnchor="middle" fontWeight="600">0° = closed (holds card) · 90° = open (releases card)</text>
         </AssemblyDiagram>
 
         <SubStep><span style={{color:S.green}}>✓ Test:</span> Manually rotate the servo horn — at 0° the flap should block the channel, at 90° it should clear it completely</SubStep>
@@ -779,53 +713,53 @@ function Assembly() {
         <SubStep>Mount the hopper above the feed roller — the <span style={{color:S.orange}}>roller protrudes through the floor slot</span> and the feed slot (68×10mm) at the front wall lines up with the slide entrance</SubStep>
         <SubStep>The spring pushes cards down onto the roller. When the motor spins, the roller grabs the bottom card and pulls it out through the feed slot</SubStep>
 
-        <AssemblyDiagram label="Hopper + feed roller cross-section — showing roller through floor">
+        <AssemblyDiagram label="Hopper + feed roller cross-section — showing roller through floor" viewBox="0 0 600 400">
           {/* Hopper body */}
-          <rect x="110" y="10" width="74" height="120" fill="#1a1a3a" stroke="#6c63ff" strokeWidth="1.5" rx="3" />
-          <text x="147" y="7" fill="#6c63ff" fontSize="8" textAnchor="middle">Hopper (Part 01)</text>
-          {/* Cards */}
-          <rect x="122" y="40" width="50" height="30" fill="#fff" opacity="0.08" rx="1" />
-          <text x="147" y="58" fill="#fff" fontSize="7" textAnchor="middle">card stack</text>
+          <rect x="120" y="15" width="140" height="210" fill="#1a1a3a" stroke="#6c63ff" strokeWidth="2" rx="5" />
+          <text x="190" y="10" fill="#6c63ff" fontSize="14" textAnchor="middle" fontWeight="600">Hopper (Part 01)</text>
+          {/* Card stack */}
+          <rect x="140" y="55" width="100" height="60" fill="#fff" opacity="0.08" rx="2" />
+          <text x="190" y="90" fill="#fff" fontSize="13" textAnchor="middle">card stack</text>
           {/* Pusher plate */}
-          <rect x="120" y="35" width="54" height="3" fill="#f59e0b" rx="1" />
-          <text x="195" y="39" fill="#f59e0b" fontSize="7">← Pusher (01b)</text>
+          <rect x="138" y="45" width="104" height="6" fill="#f59e0b" rx="2" />
+          <text x="268" y="52" fill="#f59e0b" fontSize="12" fontWeight="600">← Pusher (01b)</text>
           {/* Spring */}
-          <path d="M 147 75 Q 142 80 147 85 Q 152 90 147 95 Q 142 100 147 105" stroke="#10b981" strokeWidth="1.2" fill="none" />
-          <text x="160" y="92" fill="#10b981" fontSize="7">spring</text>
-          {/* Hopper floor with slot */}
-          <rect x="110" y="118" width="28" height="4" fill="#6c63ff" opacity="0.6" rx="1" />
-          <rect x="156" y="118" width="28" height="4" fill="#6c63ff" opacity="0.6" rx="1" />
-          <rect x="138" y="118" width="18" height="4" fill="#0a0a1a" />
-          <text x="87" y="122" fill="#9333ea" fontSize="6" textAnchor="end">roller slot</text>
-          <line x1="89" y1="120" x2="137" y2="120" stroke="#9333ea" strokeWidth="0.5" strokeDasharray="2,2" />
-          {/* Bottom card resting on roller */}
-          <rect x="122" y="112" width="50" height="2" fill="#fff" opacity="0.3" rx="0.5" />
-          <text x="195" y="115" fill="#fff" fontSize="6" opacity="0.6">← bottom card on roller</text>
+          <path d="M 190 125 Q 180 135 190 145 Q 200 155 190 165 Q 180 175 190 185" stroke="#10b981" strokeWidth="2" fill="none" />
+          <text x="210" y="160" fill="#10b981" fontSize="12" fontWeight="600">spring</text>
+          {/* Hopper floor with roller slot */}
+          <rect x="120" y="200" width="50" height="8" fill="#6c63ff" opacity="0.6" rx="1" />
+          <rect x="210" y="200" width="50" height="8" fill="#6c63ff" opacity="0.6" rx="1" />
+          <rect x="170" y="200" width="40" height="8" fill="#0a0a1a" />
+          <line x1="60" y1="204" x2="168" y2="204" stroke="#9333ea" strokeWidth="1" strokeDasharray="3,3" />
+          <text x="55" y="208" fill="#9333ea" fontSize="12" textAnchor="end" fontWeight="600">roller slot (30×20mm)</text>
+          {/* Bottom card on roller */}
+          <rect x="140" y="191" width="100" height="4" fill="#fff" opacity="0.3" rx="1" />
+          <text x="268" y="196" fill="#fff" fontSize="11" opacity="0.7">← bottom card sits on roller</text>
           {/* Roller poking through */}
-          <circle cx="147" cy="128" r="11" fill="#9333ea" opacity="0.15" stroke="#9333ea" strokeWidth="1.5" />
-          <circle cx="147" cy="128" r="3" fill="#9333ea" />
-          <text x="195" y="132" fill="#9333ea" fontSize="7">← Roller (pokes UP through floor)</text>
-          {/* Feed slot on front wall */}
-          <rect x="108" y="118" width="4" height="12" fill="#0a0a1a" />
-          <text x="100" y="135" fill="#ec4899" fontSize="6" textAnchor="end">feed slot</text>
-          {/* Sep pad on front face */}
-          <rect x="100" y="125" width="8" height="10" fill="#f59e0b" opacity="0.4" stroke="#f59e0b" strokeWidth="0.8" rx="1" />
-          <text x="80" y="150" fill="#f59e0b" fontSize="6" textAnchor="end">sep pad</text>
-          <line x1="82" y1="148" x2="104" y2="136" stroke="#f59e0b" strokeWidth="0.5" strokeDasharray="2,2" />
-          {/* Motor behind roller */}
-          <rect x="128" y="140" width="38" height="24" fill="#1a1a3a" stroke="#666" strokeWidth="0.8" rx="2" />
-          <text x="147" y="155" fill="#666" fontSize="6" textAnchor="middle">NEMA 17</text>
-          {/* Path arrow */}
-          <path d="M 108 130 L 80 145 L 60 170" stroke="#fff" strokeWidth="0.8" strokeDasharray="4,3" fill="none" />
-          <text x="50" y="180" fill="#555" fontSize="7">↓ onto slide</text>
-          {/* How it works annotation */}
-          <rect x="230" y="60" width="160" height="80" fill="#0e0e1a" stroke="#1a1a2e" strokeWidth="0.5" rx="4" />
-          <text x="310" y="75" fill="#fff" fontSize="7" fontWeight="600" textAnchor="middle">How it feeds:</text>
-          <text x="240" y="90" fill="#888" fontSize="6.5">1. Spring pushes cards DOWN</text>
-          <text x="240" y="102" fill="#888" fontSize="6.5">2. Bottom card rests ON roller</text>
-          <text x="240" y="114" fill="#888" fontSize="6.5">3. Roller spins → pulls card out</text>
-          <text x="240" y="126" fill="#888" fontSize="6.5">4. Sep pad blocks 2nd card</text>
-          <text x="240" y="138" fill="#888" fontSize="6.5">5. Card exits through feed slot</text>
+          <circle cx="190" cy="220" r="20" fill="#9333ea" opacity="0.15" stroke="#9333ea" strokeWidth="2" />
+          <circle cx="190" cy="220" r="5" fill="#9333ea" />
+          <text x="268" y="224" fill="#9333ea" fontSize="12" fontWeight="600">← Roller pokes UP through floor</text>
+          {/* Feed slot */}
+          <rect x="116" y="198" width="8" height="20" fill="#0a0a1a" />
+          <text x="80" y="215" fill="#ec4899" fontSize="11" textAnchor="end">feed slot →</text>
+          {/* Sep pad */}
+          <rect x="102" y="208" width="14" height="18" fill="#f59e0b" opacity="0.4" stroke="#f59e0b" strokeWidth="1.5" rx="2" />
+          <line x1="80" y1="240" x2="109" y2="226" stroke="#f59e0b" strokeWidth="1" strokeDasharray="3,3" />
+          <text x="75" y="248" fill="#f59e0b" fontSize="12" textAnchor="end" fontWeight="600">sep pad (cork)</text>
+          {/* Motor */}
+          <rect x="155" y="248" width="70" height="45" fill="#1a1a3a" stroke="#666" strokeWidth="1.5" rx="3" />
+          <text x="190" y="278" fill="#888" fontSize="12" textAnchor="middle">NEMA 17</text>
+          {/* Card exit path */}
+          <path d="M 108 220 L 70 250 L 45 290" stroke="#fff" strokeWidth="1.5" strokeDasharray="6,4" fill="none" />
+          <text x="40" y="308" fill="#aaa" fontSize="12">↓ onto slide</text>
+          {/* How it works box */}
+          <rect x="370" y="50" width="210" height="150" fill="#0e0e1a" stroke="#333" strokeWidth="1" rx="6" />
+          <text x="475" y="75" fill="#fff" fontSize="14" fontWeight="600" textAnchor="middle">How it feeds:</text>
+          <text x="382" y="100" fill="#aaa" fontSize="12">1. Spring pushes cards DOWN</text>
+          <text x="382" y="122" fill="#aaa" fontSize="12">2. Bottom card rests ON roller</text>
+          <text x="382" y="144" fill="#aaa" fontSize="12">3. Roller spins → pulls card out</text>
+          <text x="382" y="166" fill="#aaa" fontSize="12">4. Sep pad blocks 2nd card</text>
+          <text x="382" y="188" fill="#aaa" fontSize="12">5. Card exits through feed slot</text>
         </AssemblyDiagram>
 
         <SubStep>Load ~20 test cards (sleeved) into the hopper to verify the spring pressure pushes them down onto the roller</SubStep>
@@ -846,25 +780,39 @@ function Assembly() {
         <SubStep>Mount the assembly below the gravity slide's camera window (50×70mm opening) — the camera should be about 60mm from where the card sits</SubStep>
         <SubStep>Route the USB cable out the side — this connects to your computer for both power and WiFi communication</SubStep>
 
-        <AssemblyDiagram label="ESP32-CAM mount — camera looks down through slide window at card">
-          <rect x="130" y="70" width="140" height="15" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="1" rx="2" />
-          <text x="200" y="65" fill="#4a9eff" fontSize="8" textAnchor="middle">gravity slide</text>
-          <rect x="165" y="72" width="70" height="11" fill="#0a0a1a" stroke="#666" strokeWidth="0.5" />
-          <text x="200" y="80" fill="#666" fontSize="6" textAnchor="middle">camera window</text>
-          <rect x="155" y="90" width="90" height="50" fill="#1a1a3a" stroke="#16a34a" strokeWidth="1.5" rx="4" />
-          <text x="200" y="105" fill="#16a34a" fontSize="8" textAnchor="middle">ESP32-CAM</text>
-          <circle cx="200" cy="120" r="8" fill="#16a34a22" stroke="#16a34a" strokeWidth="1" />
-          <circle cx="200" cy="120" r="3" fill="#16a34a" />
-          <text x="200" y="135" fill="#16a34a" fontSize="6" textAnchor="middle">OV2640</text>
-          <circle cx="200" cy="120" r="20" fill="none" stroke="#eab308" strokeWidth="0.8" strokeDasharray="3,2" />
-          <text x="230" y="112" fill="#eab308" fontSize="7">LED ring</text>
-          <path d="M 200 128 L 200 160 L 210 170" stroke="#fff" strokeWidth="0.8" strokeDasharray="4,3" fill="none" />
-          <text x="220" y="175" fill="#555" fontSize="7">↓ looks at card</text>
-          <rect x="170" y="155" width="60" height="15" fill="#fff2" stroke="#fff3" strokeWidth="0.5" rx="2" />
-          <text x="200" y="165" fill="#fff" fontSize="7" textAnchor="middle">card here</text>
-          <line x1="245" y1="110" x2="280" y2="110" stroke="#ea580c" strokeWidth="1.5" />
-          <text x="300" y="113" fill="#ea580c" fontSize="7">USB out</text>
-          <text x="200" y="195" fill="#666" fontSize="8" textAnchor="middle">~60mm lens-to-card distance</text>
+        <AssemblyDiagram label="ESP32-CAM mount — camera looks down through slide window at card" viewBox="0 0 600 340">
+          {/* Gravity slide */}
+          <rect x="130" y="60" width="240" height="24" fill="#1a1a3a" stroke="#4a9eff" strokeWidth="2" rx="3" />
+          <text x="250" y="45" fill="#4a9eff" fontSize="14" textAnchor="middle" fontWeight="600">Gravity Slide</text>
+          {/* Camera window in slide */}
+          <rect x="200" y="62" width="100" height="20" fill="#0a0a1a" stroke="#666" strokeWidth="1" />
+          <text x="250" y="77" fill="#888" fontSize="11" textAnchor="middle">camera window (50×70mm)</text>
+          {/* ESP32-CAM board */}
+          <rect x="175" y="100" width="150" height="80" fill="#1a1a3a" stroke="#16a34a" strokeWidth="2" rx="6" />
+          <text x="250" y="125" fill="#16a34a" fontSize="14" textAnchor="middle" fontWeight="600">ESP32-CAM</text>
+          {/* Camera lens */}
+          <circle cx="250" cy="155" r="14" fill="#16a34a22" stroke="#16a34a" strokeWidth="2" />
+          <circle cx="250" cy="155" r="5" fill="#16a34a" />
+          <text x="250" y="175" fill="#16a34a" fontSize="11" textAnchor="middle">OV2640 lens</text>
+          {/* LED ring */}
+          <circle cx="250" cy="155" r="34" fill="none" stroke="#eab308" strokeWidth="1.5" strokeDasharray="5,4" />
+          <text x="300" y="138" fill="#eab308" fontSize="12" fontWeight="600">LED ring light</text>
+          {/* Vision path down to card */}
+          <path d="M 250 170 L 250 240" stroke="#fff" strokeWidth="1.5" strokeDasharray="6,4" fill="none" />
+          <text x="280" y="215" fill="#aaa" fontSize="12">↓ looks at card</text>
+          {/* Card position */}
+          <rect x="200" y="245" width="100" height="25" fill="#fff" opacity="0.06" stroke="#fff" strokeWidth="1" rx="3" />
+          <text x="250" y="262" fill="#fff" fontSize="12" textAnchor="middle">card stops here</text>
+          {/* USB cable */}
+          <line x1="325" y1="140" x2="400" y2="140" stroke="#ea580c" strokeWidth="2.5" />
+          <text x="410" y="145" fill="#ea580c" fontSize="13" fontWeight="600">USB out →</text>
+          {/* Distance label */}
+          <text x="250" y="305" fill="#aaa" fontSize="14" textAnchor="middle" fontWeight="600">~60mm lens-to-card distance</text>
+          {/* Mount bracket hint */}
+          <rect x="165" y="84" width="8" height="96" fill="#4a9eff" opacity="0.3" rx="1" />
+          <rect x="327" y="84" width="8" height="96" fill="#4a9eff" opacity="0.3" rx="1" />
+          <text x="425" y="110" fill="#4a9eff" fontSize="11">M2 standoffs</text>
+          <line x1="335" y1="110" x2="420" y2="110" stroke="#4a9eff" strokeWidth="0.8" />
         </AssemblyDiagram>
 
         <SubStep><span style={{color:S.green}}>✓ Test:</span> Connect USB, open the ESP32's stream URL in a browser — you should see a live camera feed of the card slot area</SubStep>
